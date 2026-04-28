@@ -7,7 +7,7 @@ const { Pool } = pkg;
 const pool = new Pool({
   host: "aws-0-eu-west-1.pooler.supabase.com",
   port: 5432,
-  database: "nearbuy_db", // 🔥 match what worked in psql
+  database: "postgres", // 🔥 match what worked in psql
   user: "postgres.dsdeaewrmtqmkjqeptnl",
   password: "@Manneerourh1",
   ssl: {
