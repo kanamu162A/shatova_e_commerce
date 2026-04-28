@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Tracker - Secure OTP Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Login Card */
+        .login-card, .dashboard-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            padding: 40px;
+            max-width: 500px;
+            margin: 50px auto;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 20px;
+            display: none;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .otp-section {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        /* Dashboard Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .logout-btn {
+            width: auto;
+            padding: 8px 20px;
+            background: #dc3545;
+            margin: 0;
+        }
+
+        .welcome {
+            font-size: 24px;
+            color: #667eea;
+        }
+
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .card .amount {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            overflow-x: auto;
+            display: block;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .status-settled {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-owes {
+            color: red;
+            font-weight: bold;
+        }
+
+        .admin-section {
+            background: #f7f7f7;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .login-card, .dashboard-container {
+                padding: 20px;
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Card -->
+        <div id="loginCard" class="login-card">
+            <h1>💰 Money Tracker</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="email" placeholder="Enter your email" required>
+                </div>
+                <button type="submit">Send OTP</button>
+            </form>
+            <div id="otpSection" class="otp-section">
+                <div class="form-group">
+                    <label>Enter OTP</label>
+                    <input type="text" id="otp" placeholder="6-digit code" maxlength="6">
+                </div>
+                <button id="verifyBtn">Verify & Login</button>
+            </div>
+            <div id="loginMessage" class="message"></div>
+        </div>
+
+        <!-- Dashboard (Hidden initially) -->
+        <div id="dashboard" class="dashboard-container">
+            <div class="header">
+                <div class="welcome" id="welcomeMsg">Welcome, User!</div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+
+            <!-- Admin Panel (Only visible to admin) -->
+            <div id="adminPanel" class="admin-section" style="display:none;">
+                <h3>👑 Admin Panel - Add New User</h3>
+                <form id="addUserForm">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="userName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="userEmail" required>
+                    </div>
+                    <button type="submit">Add User</button>
+                </form>
+                <div id="adminMessage" class="message"></div>
+            </div>
+
+            <!-- Dashboard Cards -->
+            <div class="dashboard-cards" id="dashboardCards"></div>
+
+            <!-- Transactions -->
+            <h2>📋 My Transactions</h2>
+            <form id="transactionForm" style="margin-bottom:20px;">
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="transDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="transType" required>
+                        <option value="Collected">Collected (Took Money)</option>
+                        <option value="Paid Back">Paid Back (Returned Money)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Amount (₦)</label>
+                    <input type="number" id="transAmount" required min="0">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="transDesc" placeholder="Optional">
+                </div>
+                <button type="submit">Add Transaction</button>
+            </form>
+
+            <table id="transactionsTable">
+                <thead>
+                    <tr><th>Date</th><th>Type</th><th>Amount</th><th>Description</th><th>Balance</th><th>Outstanding</th></tr>
+                </thead>
+                <tbody id="transactionsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Database setup using IndexedDB
+        let db = null;
+        let currentUser = null;
+        let pendingOTP = null;
+
+        // Initialize Database
+        function initDatabase() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('MoneyTrackerDB', 2);
+                
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => {
+                    db = request.result;
+                    resolve();
+                };
+                
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    
+                    // Users table
+                    if (!db.objectStoreNames.contains('users')) {
+                        const userStore = db.createObjectStore('users', { keyPath: 'email' });
+                        userStore.createIndex('name', 'name', { unique: false });
+                        userStore.createIndex('isAdmin', 'isAdmin', { unique: false });
+                    }
+                    
+                    // Transactions table
+                    if (!db.objectStoreNames.contains('transactions')) {
+                        const transStore = db.createObjectStore('transactions', { keyPath: 'id', autoIncrement: true });
+                        transStore.createIndex('email', 'email', { unique: false });
+                        transStore.createIndex('date', 'date', { unique: false });
+                    }
+                    
+                    // Add default admin user
+                    const transaction = db.transaction(['users'], 'readwrite');
+                    const userStore = transaction.objectStore('users');
+                    
+                    // Check if admin exists
+                    const adminCheck = userStore.get('admin@system.com');
+                    adminCheck.onsuccess = () => {
+                        if (!adminCheck.result) {
+                            userStore.add({
+                                email: 'admin@system.com',
+                                name: 'System Admin',
+                                isAdmin: true,
+                                createdAt: new Date().toISOString()
+                            });
+                        }
+                    };
+                };
+            });
+        }
+
+        // Add new user (admin only)
+        async function addUser(name, email) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['users'], 'readwrite');
+                const userStore = transaction.objectStore('users');
+                
+                const user = {
+                    email: email,
+                    name: name,
+                    isAdmin: false,
+                    createdAt: new Date().toISOString()
+                };
+                
+                const request = userStore.add(user);
+                request.onsuccess = () => resolve(user);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Check if user exists
+        async function getUser(email) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['users'], 'readonly');
+                const userStore = transaction.objectStore('users');
+                const request = userStore.get(email);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Add transaction
+        async function addTransaction(email, date, type, amount, description) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['transactions'], 'readwrite');
+                const transStore = transaction.objectStore('transactions');
+                
+                const trans = {
+                    email: email,
+                    date: date,
+                    type: type,
+                    amount: amount,
+                    description: description || '',
+                    timestamp: new Date().toISOString()
+                };
+                
+                const request = transStore.add(trans);
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Get user transactions
+        async function getUserTransactions(email) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['transactions'], 'readonly');
+                const transStore = transaction.objectStore('transactions');
+                const index = transStore.index('email');
+                const request = index.getAll(email);
+                request.onsuccess = () => resolve(request.result || []);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        // Calculate balance
+        function calculateBalance(transactions, initialBalance = 150000) {
+            let balance = initialBalance;
+            let totalCollected = 0;
+            let totalPaidBack = 0;
+            
+            for (let t of transactions) {
+                if (t.type === 'Collected') {
+                    balance -= t.amount;
+                    totalCollected += t.amount;
+                } else if (t.type === 'Paid Back') {
+                    balance += t.amount;
+                    totalPaidBack += t.amount;
+                }
+            }
+            
+            const outstanding = balance < 0 ? -balance : 0;
+            return { balance, outstanding, totalCollected, totalPaidBack };
+        }
+
+        // Send OTP (simulated)
+        function sendOTP(email) {
+            pendingOTP = Math.floor(100000 + Math.random() * 900000).toString();
+            console.log(`OTP for ${email}: ${pendingOTP}`); // In production, send via email
+            alert(`Your OTP is: ${pendingOTP}\n(In production, this would be sent to ${email})`);
+            return pendingOTP;
+        }
+
+        // Update dashboard UI
+        async function updateDashboard() {
+            if (!currentUser) return;
+            
+            const transactions = await getUserTransactions(currentUser.email);
+            const { balance, outstanding, totalCollected, totalPaidBack } = calculateBalance(transactions);
+            
+            // Update cards
+            document.getElementById('dashboardCards').innerHTML = `
+                <div class="card"><h3>Current Balance</h3><div class="amount">₦${balance.toLocaleString()}</div></div>
+                <div class="card"><h3>Outstanding (Owes)</h3><div class="amount">₦${outstanding.toLocaleString()}</div></div>
+                <div class="card"><h3>Total Collected</h3><div class="amount">₦${totalCollected.toLocaleString()}</div></div>
+                <div class="card"><h3>Total Paid Back</h3><div class="amount">₦${totalPaidBack.toLocaleString()}</div></div>
+            `;
+            
+            // Update transactions table
+            const tbody = document.getElementById('transactionsBody');
+            tbody.innerHTML = '';
+            let runningBalance = 150000;
+            
+            const sorted = [...transactions].sort((a,b) => a.date.localeCompare(b.date));
+            for (let t of sorted) {
+                if (t.type === 'Collected') runningBalance -= t.amount;
+                else runningBalance += t.amount;
+                
+                const outstandingAmt = runningBalance < 0 ? -runningBalance : 0;
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${t.date}</td>
+                    <td>${t.type}</td>
+                    <td>₦${t.amount.toLocaleString()}</td>
+                    <td>${t.description || '-'}</td>
+                    <td>₦${runningBalance.toLocaleString()}</td>
+                    <td class="${outstandingAmt > 0 ? 'status-owes' : ''}">₦${outstandingAmt.toLocaleString()}</td>
+                `;
+            }
+        }
+
+        // Login handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            
+            const user = await getUser(email);
+            if (!user) {
+                showMessage('loginMessage', 'User not found! Contact admin.', 'error');
+                return;
+            }
+            
+            // Send OTP
+            const otp = sendOTP(email);
+            pendingOTP = otp;
+            document.getElementById('otpSection').style.display = 'block';
+            showMessage('loginMessage', `OTP sent to ${email}`, 'success');
+        });
+        
+        document.getElementById('verifyBtn').addEventListener('click', async () => {
+            const otp = document.getElementById('otp').value;
+            const email = document.getElementById('email').value;
+            
+            if (otp !== pendingOTP) {
+                showMessage('loginMessage', 'Invalid OTP!', 'error');
+                return;
+            }
+            
+            const user = await getUser(email);
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginCard').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                document.getElementById('welcomeMsg').textContent = `Welcome, ${user.name}!`;
+                
+                // Show admin panel if admin
+                if (user.isAdmin) {
+                    document.getElementById('adminPanel').style.display = 'block';
+                }
+                
+                await updateDashboard();
+            }
+        });
+        
+        // Add transaction
+        document.getElementById('transactionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const date = document.getElementById('transDate').value;
+            const type = document.getElementById('transType').value;
+            const amount = parseFloat(document.getElementById('transAmount').value);
+            const description = document.getElementById('transDesc').value;
+            
+            if (!date || !type || !amount) {
+                alert('Please fill all fields');
+                return;
+            }
+            
+            await addTransaction(currentUser.email, date, type, amount, description);
+            document.getElementById('transactionForm').reset();
+            document.getElementById('transDate').valueAsDate = new Date();
+            await updateDashboard();
+            alert('Transaction added!');
+        });
+        
+        // Add user (admin)
+        document.getElementById('addUserForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('userName').value;
+            const email = document.getElementById('userEmail').value;
+            
+            try {
+                await addUser(name, email);
+                showMessage('adminMessage', `User ${name} added successfully!`, 'success');
+                document.getElementById('addUserForm').reset();
+            } catch (error) {
+                showMessage('adminMessage', 'User already exists!', 'error');
+            }
+        });
+        
+        function showMessage(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = `message ${type}`;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+        
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginCard').style.display = 'block';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('loginForm').reset();
+            document.getElementById('otpSection').style.display = 'none';
+            document.getElementById('email').value = '';
+            document.getElementById('otp').value = '';
+        }
+        
+        // Set default date
+        document.getElementById('transDate').valueAsDate = new Date();
+        
+        // Initialize
+        initDatabase().then(() => {
+            console.log('Database ready');
+        }).catch(console.error);
+    </script>
+</body>
+</html>

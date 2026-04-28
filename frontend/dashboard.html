@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>NearBuy · Dashboard</title>
+
+  <!-- Google Fonts & Chart.js -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #1e40af;
+      --primary-light: #dbeafe;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --dark: #0f172a;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-600: #475569;
+      --gray-800: #1e293b;
+      --white: #ffffff;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+      --radius-md: 0.75rem;
+      --radius-lg: 1rem;
+      --radius-xl: 1.25rem;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: linear-gradient(135deg, #f0f4fe 0%, #e2e8f0 100%);
+      min-height: 100vh;
+      color: var(--dark);
+    }
+
+    /* Layout */
+    .dashboard-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: linear-gradient(180deg, var(--dark) 0%, #1e293b 100%);
+      color: var(--white);
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+      transition: transform 0.3s ease;
+      z-index: 100;
+    }
+
+    .sidebar-header {
+      padding: 1.5rem;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar-logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff, #94a3b8);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .user-info {
+      padding: 1.5rem;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .user-avatar {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .user-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .user-role {
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    /* Navigation */
+    .nav-menu {
+      padding: 1rem 0;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.875rem 1.5rem;
+      color: var(--gray-300);
+      text-decoration: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--white);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(90deg, var(--primary), transparent);
+      color: var(--white);
+      border-left: 3px solid var(--primary);
+    }
+
+    .nav-item i {
+      width: 1.5rem;
+      font-size: 1.1rem;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      margin-left: 280px;
+      padding: 1.5rem;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .logout-btn {
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+    }
+
+    /* Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--primary-light);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: var(--primary);
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+
+    .stat-label {
+      color: var(--gray-600);
+      font-size: 0.85rem;
+    }
+
+    /* Wallet Card */
+    .wallet-card {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: var(--white);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .wallet-balance {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin: 0.5rem 0;
+    }
+
+    .wallet-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .wallet-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-md);
+      color: var(--white);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+    }
+
+    .wallet-btn:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    /* Sections */
+    .section-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    /* Tables & Lists */
+    .orders-table {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--gray-600);
+      font-size: 0.85rem;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-completed { background: #d1fae5; color: #065f46; }
+    .status-processing { background: #fed7aa; color: #92400e; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+
+    /* Transaction List */
+    .transaction-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .transaction-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .transaction-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .transaction-icon.credit { background: #d1fae5; color: #10b981; }
+    .transaction-icon.debit { background: #fee2e2; color: #ef4444; }
+
+    .transaction-amount.credit { color: #10b981; font-weight: 600; }
+    .transaction-amount.debit { color: #ef4444; font-weight: 600; }
+
+    /* Filters */
+    .filter-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 0.375rem 1rem;
+      border: 1px solid var(--gray-200);
+      background: var(--white);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+    }
+
+    .filter-btn.active {
+      background: var(--primary);
+      color: var(--white);
+      border-color: var(--primary);
+    }
+
+    /* Products Grid */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+
+    .product-card {
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      border: 1px solid var(--gray-200);
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      font-size: 0.85rem;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      font-family: inherit;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* Modals */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      max-width: 500px;
+      width: 90%;
+      padding: 1.5rem;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .close-modal {
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .btn-primary, .btn-secondary, .btn-danger {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--white);
+    }
+
+    .btn-secondary {
+      background: var(--gray-200);
+      color: var(--dark);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: var(--white);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius-md);
+      color: white;
+      z-index: 1100;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast.show {
+      display: block;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Pages */
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--gray-400);
+    }
+
+    /* KYC Progress */
+    .kyc-progress {
+      margin-top: 1rem;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--gray-200);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--primary);
+      transition: width 0.3s ease;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      
+      .sidebar.mobile-open {
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+      
+      .mobile-menu-btn {
+        display: block;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .wallet-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+ <div class="dashboard-container">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">NEARBUY</div>
+    </div>
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatar">JD</div>
+      <div class="user-name" id="userName">shatova</div>
+      <div class="user-role" id="userRole">Buyer</div>
+    </div>
+    <nav class="nav-menu">
+      <div class="nav-item active" data-page="overview">
+        <i class="fas fa-chart-line"></i> <span>Dashboard</span>
+      </div>
+      <div class="nav-item" data-page="orders">
+        <i class="fas fa-shopping-bag"></i> <span>My Orders</span>
+      </div>
+      <div class="nav-item" data-page="wallet">
+        <i class="fas fa-wallet"></i> <span>Wallet</span>
+      </div>
+      <div class="nav-item" data-page="transactions">
+        <i class="fas fa-exchange-alt"></i> <span>Transactions</span>
+      </div>
+      <div class="nav-item" data-page="sell">
+        <i class="fas fa-store"></i> <span>Store Center</span>
+      </div>
+      <div class="nav-item" data-page="kyc">
+        <i class="fas fa-id-card"></i> <span>KYC Verification</span>
+      </div>
+      <div class="nav-item" data-page="settings">
+        <i class="fas fa-cog"></i> <span>Settings</span>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="top-bar">
+      <div class="mobile-menu-btn" id="mobileMenuBtn">
+        <i class="fas fa-bars"></i>
+      </div>
+      <h1 class="page-title" id="pageTitle">Dashboard Overview</h1>
+      <button class="logout-btn" id="logoutBtn">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
+
+    <!-- Overview Page -->
+    <div id="overviewPage" class="page active">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
+          </div>
+          <div class="stat-value" id="totalOrders">0</div>
+          <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+          </div>
+          <div class="stat-value" id="totalSpent">$0</div>
+          <div class="stat-label">Total Spent</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+          </div>
+          <div class="stat-value" id="pendingOrders">0</div>
+          <div class="stat-label">Pending Orders</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+          </div>
+          <div class="stat-value" id="completedOrders">0</div>
+          <div class="stat-label">Completed Orders</div>
+        </div>
+      </div>
+
+      <div class="wallet-card">
+        <div>Wallet Balance</div>
+        <div class="wallet-balance" id="walletBalance">$0.00</div>
+        <div class="wallet-actions">
+          <button class="wallet-btn" onclick="openModal('addFundsModal')"><i class="fas fa-plus"></i> Add Funds</button>
+          <button class="wallet-btn" onclick="openModal('withdrawModal')"><i class="fas fa-download"></i> Withdraw</button>
+          <button class="wallet-btn" onclick="openModal('sendMoneyModal')"><i class="fas fa-paper-plane"></i> Send Money</button>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <h3 class="section-title">Recent Orders</h3>
+          <button class="filter-btn view-all-btn" data-page="orders">View All →</button>
+        </div>
+        <div class="orders-table">
+          <table id="recentOrdersTable">
+            <thead>
+              <tr><th>Order ID</th><th>Total</th><th>Status</th><th>Date</th></tr>
+            </thead>
+            <tbody id="recentOrdersList"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders Page -->
+    <div id="ordersPage" class="page">
+      <div class="section-card">
+        <div class="section-header">
+          <h3 class="section-title">All Orders</h3>
+          <div class="filter-group order-filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="pending">Pending</button>
+            <button class="filter-btn" data-filter="processing">Processing</button>
+            <button class="filter-btn" data-filter="completed">Completed</button>
+          </div>
+        </div>
+        <div id="ordersList"></div>
+      </div>
+    </div>
+
+    <!-- Wallet Page -->
+    <div id="walletPage" class="page">
+      <div class="wallet-card">
+        <div>Current Balance</div>
+        <div class="wallet-balance" id="walletBalancePage">$0.00</div>
+        <div class="wallet-actions">
+          <button class="wallet-btn" onclick="openModal('addFundsModal')"><i class="fas fa-plus"></i> Add Funds</button>
+          <button class="wallet-btn" onclick="openModal('withdrawModal')"><i class="fas fa-download"></i> Withdraw</button>
+          <button class="wallet-btn" onclick="openModal('sendMoneyModal')"><i class="fas fa-paper-plane"></i> Send Money</button>
+        </div>
+      </div>
+      <div class="section-card">
+        <div class="section-header">
+          <h3 class="section-title">Wallet Summary</h3>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-value" id="totalDeposited">$0</div><div class="stat-label">Total Deposited</div></div>
+          <div class="stat-card"><div class="stat-value" id="totalWithdrawn">$0</div><div class="stat-label">Total Withdrawn</div></div>
+          <div class="stat-card"><div class="stat-value" id="totalWalletSpent">$0</div><div class="stat-label">Total Spent</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions Page -->
+    <div id="transactionsPage" class="page">
+      <div class="section-card">
+        <div class="section-header">
+          <h3 class="section-title">Transaction History</h3>
+          <div class="filter-group transaction-filters">
+            <button class="filter-btn active" data-tx-filter="all">All</button>
+            <button class="filter-btn" data-tx-filter="credit">Credits</button>
+            <button class="filter-btn" data-tx-filter="debit">Debits</button>
+          </div>
+        </div>
+        <div id="transactionsList"></div>
+      </div>
+    </div>
+
+    <!-- Sell Center Page -->
+    <div id="sellPage" class="page">
+      <div class="section-card">
+        <div class="section-header">
+          <h3 class="section-title">Seller Dashboard</h3>
+          <button class="btn-primary" id="addProductBtn" style="display:none;"><i class="fas fa-plus"></i> Add Product</button>
+        </div>
+        <div id="sellerRequirementMsg" class="empty-state" style="display:none;">Complete KYC verification to start selling</div>
+        <div id="sellerStats" class="stats-grid" style="display:none;">
+          <div class="stat-card"><div class="stat-value" id="totalProducts">0</div><div class="stat-label">Total Products</div></div>
+          <div class="stat-card"><div class="stat-value" id="totalSales">$0</div><div class="stat-label">Total Sales</div></div>
+          <div class="stat-card"><div class="stat-value" id="activeListings">0</div><div class="stat-label">Active Listings</div></div>
+        </div>
+        <div id="productsList" class="products-grid"></div>
+        <div id="sellerActions" style="display:none; margin-top:1rem;">
+          <button class="btn-primary" id="becomeSellerBtn" style="display:none;">Become a Seller</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KYC Page -->
+    <div id="kycPage" class="page">
+      <div class="section-card">
+        <div class="section-header">
+          <h3 class="section-title">KYC Verification</h3>
+        </div>
+        <div id="kycStatus">
+          <div class="kyc-progress">
+            <div class="progress-bar"><div class="progress-fill" id="kycProgressBar" style="width:0%"></div></div>
+            <p style="margin-top:0.5rem;" id="kycStatusText">Not Started</p>
+          </div>
+        </div>
+        <form id="kycForm" style="margin-top:1.5rem;">
+          <div class="form-group"><label>Full Name</label><input type="text" id="kycFullName" placeholder="Enter your full name" /></div>
+          <div class="form-group"><label>ID Type</label><select id="kycIdType"><option>Passport</option><option>National ID</option><option>Driver's License</option></select></div>
+          <div class="form-group"><label>ID Number</label><input type="text" id="kycIdNumber" placeholder="Enter ID number" /></div>
+          <div class="form-group"><label>Address</label><textarea id="kycAddress" rows="2" placeholder="Your residential address"></textarea></div>
+          <button type="button" class="btn-primary" id="submitKycBtn">Submit KYC</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Settings Page -->
+    <div id="settingsPage" class="page">
+      <div class="section-card">
+        <div class="section-header"><h3 class="section-title">Profile Settings</h3></div>
+        <form id="settingsForm">
+          <div class="form-group"><label>Name</label><input type="text" id="settingsName" /></div>
+          <div class="form-group"><label>Email</label><input type="email" id="settingsEmail" disabled /></div>
+          <div class="form-group"><label>Phone</label><input type="tel" id="settingsPhone" /></div>
+          <button type="button" class="btn-primary" id="saveSettingsBtn">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modals -->
+<div id="addFundsModal" class="modal">
+  <div class="modal-content"><div class="modal-header"><h3>Add Funds</h3><span class="close-modal">&times;</span></div>
+    <div class="form-group"><label>Amount ($)</label><input type="number" id="fundAmount" placeholder="Enter amount" /></div>
+    <div class="modal-actions"><button class="btn-primary" id="confirmAddFunds">Add Funds</button><button class="btn-secondary close-modal">Cancel</button></div>
+  </div>
+</div>
+
+<div id="withdrawModal" class="modal">
+  <div class="modal-content"><div class="modal-header"><h3>Withdraw Funds</h3><span class="close-modal">&times;</span></div>
+    <div class="form-group"><label>Amount ($)</label><input type="number" id="withdrawAmount" placeholder="Enter amount" /></div>
+    <div class="modal-actions"><button class="btn-primary" id="confirmWithdraw">Withdraw</button><button class="btn-secondary close-modal">Cancel</button></div>
+  </div>
+</div>
+
+<div id="sendMoneyModal" class="modal">
+  <div class="modal-content"><div class="modal-header"><h3>Send Money</h3><span class="close-modal">&times;</span></div>
+    <div class="form-group"><label>Recipient Email</label><input type="email" id="recipientEmail" placeholder="user@example.com" /></div>
+    <div class="form-group"><label>Amount ($)</label><input type="number" id="sendAmount" placeholder="Enter amount" /></div>
+    <div class="form-group"><label>Note (Optional)</label><input type="text" id="sendNote" placeholder="Add a note" /></div>
+    <div class="modal-actions"><button class="btn-primary" id="confirmSend">Send Money</button><button class="btn-secondary close-modal">Cancel</button></div>
+  </div>
+</div>
+
+<div id="addProductModal" class="modal">
+  <div class="modal-content"><div class="modal-header"><h3>Add Product</h3><span class="close-modal">&times;</span></div>
+    <div class="form-group"><label>Product Name</label><input type="text" id="productName" /></div>
+    <div class="form-group"><label>Price ($)</label><input type="number" id="productPrice" /></div>
+    <div class="form-group"><label>Stock</label><input type="number" id="productStock" /></div>
+    <div class="form-group"><label>Category</label><select id="productCategory"><option>electronics</option><option>fashion</option><option>home</option></select></div>
+    <div class="modal-actions"><button class="btn-primary" id="confirmAddProduct">Add Product</button><button class="btn-secondary close-modal">Cancel</button></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  const API_BASE = "http://localhost:6030";
+  let currentUser = null;
+  let authToken = localStorage.getItem('auth_token');
+
+  // Helper Functions
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.style.background = type === 'success' ? '#10b981' : '#ef4444';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+  }
+
+  async function apiCall(endpoint, options = {}) {
+    const response = await fetch(`${API_BASE}/api/shatova/v1/dashboard/${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+        ...options.headers
+      }
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || 'Request failed');
+    return data;
+  }
+
+  // Load Dashboard Data
+  async function loadDashboard() {
+    try {
+      const data = await apiCall('stats');
+      currentUser = data.data.user;
+      
+      // Update UI
+      document.getElementById('userName').textContent = currentUser.name;
+      document.getElementById('userAvatar').textContent = currentUser.name.split(' ').map(n => n[0]).join('');
+      document.getElementById('userRole').textContent = currentUser.role 
+      
+      document.getElementById('walletBalance').textContent = formatCurrency(currentUser.walletBalance);
+      document.getElementById('walletBalancePage').textContent = formatCurrency(currentUser.walletBalance);
+      
+      document.getElementById('totalOrders').textContent = data.data.stats.totalOrders;
+      document.getElementById('totalSpent').textContent = formatCurrency(data.data.stats.totalSpent);
+      document.getElementById('pendingOrders').textContent = data.data.stats.pendingOrders;
+      document.getElementById('completedOrders').textContent = data.data.stats.completedOrders;
+      
+      // Recent orders
+      const recentOrdersHtml = data.data.recentOrders.map(order => `
+        <tr><td>${order.order_number}</td><td>${formatCurrency(order.total_amount)}</td>
+        <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+        <td>${new Date(order.created_at).toLocaleDateString()}</td></tr>
+      `).join('');
+      document.getElementById('recentOrdersList').innerHTML = recentOrdersHtml || '<tr><td colspan="4">No orders found</td></tr>';
+      
+      // Load orders, transactions, etc.
+      await loadOrders();
+      await loadTransactions();
+      await loadSellerData();
+      
+    } catch (error) {
+      console.error('Load dashboard error:', error);
+      if (error.message.includes('token')) {
+        window.location.href = 'login.html';
+      }
+    }
+  }
+
+  async function loadOrders(filter = 'all') {
+    try {
+      const url = filter !== 'all' ? `orders?status=${filter}` : 'orders';
+      const data = await apiCall(url);
+      const ordersHtml = data.data.map(order => `
+        <div class="order-card" style="border:1px solid #e2e8f0; border-radius:0.75rem; padding:1rem; margin-bottom:1rem;">
+          <div class="order-header" style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+            <strong>Order #${order.order_number}</strong>
+            <span class="status-badge status-${order.status}">${order.status}</span>
+          </div>
+          <div class="order-products" style="margin:0.5rem 0">
+            ${order.items.map(item => `<div style="display:flex; justify-content:space-between;"><span>${item.product_name} x ${item.quantity}</span><span>${formatCurrency(item.price * item.quantity)}</span></div>`).join('')}
+          </div>
+          <div class="order-footer" style="display:flex; justify-content:space-between; margin-top:0.5rem;">
+            <strong>Total: ${formatCurrency(order.total_amount)}</strong>
+            <span>${new Date(order.created_at).toLocaleDateString()}</span>
+          </div>
+        </div>
+      `).join('');
+      document.getElementById('ordersList').innerHTML = ordersHtml || '<div class="empty-state">No orders found</div>';
+    } catch (error) {
+      console.error('Load orders error:', error);
+    }
+  }
+
+  async function loadTransactions(filter = 'all') {
+    try {
+      const url = filter !== 'all' ? `transactions?type=${filter}` : 'transactions';
+      const data = await apiCall(url);
+      const transactionsHtml = data.data.map(tx => `
+        <div class="transaction-item">
+          <div class="transaction-left">
+            <div class="transaction-icon ${tx.type}"><i class="fas ${tx.type === 'credit' ? 'fa-arrow-down' : 'fa-arrow-up'}"></i></div>
+            <div class="transaction-details"><h4>${tx.description}</h4><p>${new Date(tx.created_at).toLocaleDateString()}</p></div>
+          </div>
+          <div class="transaction-amount ${tx.type}">${tx.type === 'credit' ? '+' : '-'} ${formatCurrency(tx.amount)}</div>
+        </div>
+      `).join('');
+      document.getElementById('transactionsList').innerHTML = transactionsHtml || '<div class="empty-state">No transactions found</div>';
+    } catch (error) {
+      console.error('Load transactions error:', error);
+    }
+  }
+
+  async function loadSellerData() {
+    if (currentUser?.role === 'seller') {
+      try {
+        const products = await apiCall('products');
+        document.getElementById('totalProducts').textContent = products.data.length;
+        document.getElementById('activeListings').textContent = products.data.filter(p => p.status === 'active').length;
+        document.getElementById('sellerStats').style.display = 'grid';
+        document.getElementById('addProductBtn').style.display = 'block';
+        
+        const productsHtml = products.data.map(p => `
+          <div class="product-card"><h4>${p.name}</h4><div class="product-price">${formatCurrency(p.price)}</div><div class="product-stock">Stock: ${p.stock}</div></div>
+        `).join('');
+        document.getElementById('productsList').innerHTML = productsHtml;
+      } catch (error) {
+        console.error('Load products error:', error);
+      }
+    }
+  }
+
+  // Wallet Actions
+  async function addFunds(amount) {
+    try {
+      await apiCall('wallet/add-funds', { method: 'POST', body: JSON.stringify({ amount, paymentMethod: 'card' }) });
+      showToast(`$${amount} added successfully!`);
+      loadDashboard();
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
+  }
+
+  async function withdrawFunds(amount) {
+    try {
+      await apiCall('wallet/withdraw', { method: 'POST', body: JSON.stringify({ amount, bankDetails: {} }) });
+      showToast(`Withdrawal request submitted!`);
+      loadDashboard();
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
+  }
+
+  async function sendMoney(recipientEmail, amount, note) {
+    try {
+      await apiCall('wallet/send', { method: 'POST', body: JSON.stringify({ recipientEmail, amount, note }) });
+      showToast(`$${amount} sent to ${recipientEmail}!`);
+      loadDashboard();
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
+  }
+
+  // Navigation
+  function switchPage(pageId) {
+    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+    document.getElementById(`${pageId}Page`).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+    
+    const titles = { overview: 'Dashboard Overview', orders: 'My Orders', wallet: 'Wallet', transactions: 'Transactions', sell: 'Sell Center', kyc: 'KYC Verification', settings: 'Settings' };
+    document.getElementById('pageTitle').textContent = titles[pageId];
+    
+    if (pageId === 'overview') loadDashboard();
+    if (pageId === 'orders') loadOrders();
+    if (pageId === 'transactions') loadTransactions();
+  }
+
+  // Modal Functions
+  function openModal(modalId) {
+    document.getElementById(modalId).classList.add('active');
+  }
+
+  // Event Listeners
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => switchPage(item.dataset.page));
+  });
+  
+  document.querySelectorAll('.view-all-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchPage(btn.dataset.page));
+  });
+  
+  document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('mobile-open');
+  });
+  
+  document.getElementById('logoutBtn')?.addEventListener('click', () => {
+    localStorage.removeItem('auth_token');
+    window.location.href = 'login.html';
+  });
+  
+  // Modal Buttons
+  document.getElementById('confirmAddFunds')?.addEventListener('click', () => {
+    const amount = parseFloat(document.getElementById('fundAmount').value);
+    if (amount > 0) addFunds(amount);
+    document.getElementById('addFundsModal').classList.remove('active');
+  });
+  
+  document.getElementById('confirmWithdraw')?.addEventListener('click', () => {
+    const amount = parseFloat(document.getElementById('withdrawAmount').value);
+    if (amount > 0) withdrawFunds(amount);
+    document.getElementById('withdrawModal').classList.remove('active');
+  });
+  
+  document.getElementById('confirmSend')?.addEventListener('click', () => {
+    const email = document.getElementById('recipientEmail').value;
+    const amount = parseFloat(document.getElementById('sendAmount').value);
+    const note = document.getElementById('sendNote').value;
+    if (email && amount > 0) sendMoney(email, amount, note);
+    document.getElementById('sendMoneyModal').classList.remove('active');
+  });
+  
+  // Close modals
+  document.querySelectorAll('.close-modal').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.modal').forEach(modal => modal.classList.remove('active'));
+    });
+  });
+  
+  // Filters
+  document.querySelectorAll('[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.order-filters .filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      loadOrders(btn.dataset.filter);
+    });
+  });
+  
+  document.querySelectorAll('[data-tx-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.transaction-filters .filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      loadTransactions(btn.dataset.txFilter);
+    });
+  });
+  
+  // Check authentication
+  if (!authToken) {
+    window.location.href = 'login.html';
+  } else {
+    loadDashboard();
+  }
+</script>
+</body>
+</html>
