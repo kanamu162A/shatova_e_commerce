@@ -19,7 +19,7 @@
     }
     
     // ========== REST OF THE APPLICATION (Email/Password, OTP flows) ==========
-    const API_BASE_URL = "http://localhost:6030";
+    const API_BASE_URL = "https://nearbuy-e-commerce.onrender.com";
     const OTP_EXPIRY_SECONDS = 60;
     
     const loginForm = document.getElementById('loginForm');
