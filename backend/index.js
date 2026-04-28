@@ -14,7 +14,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-    origin: "http://localhost:6030",
+    origin: "http://localhost:9090",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
     credentials: true
@@ -43,7 +43,7 @@ app.get("/login", (req, res) => {
 
 app.get("/dashboard", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/dashboard.html"));
-});
+}); 
 
 app.get("/api/health", (req, res) => {
     res.status(200).json({
