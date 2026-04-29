@@ -6,8 +6,8 @@ const transporter = nodemailer.createTransport({
   port: config.email.port || 587,
   secure: false,
   auth: {
-    user: supportnearbuy.ng@gmail.com,
-    pass: znfyruqaaokacpgw,
+    user: "supportnearbuy.ng@gmail.com",
+    pass: "znfyruqaaokacpgw",
   },
 });
 
