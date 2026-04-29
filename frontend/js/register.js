@@ -4,7 +4,7 @@
   
   (function() {
     // API Configuration - CHANGE THIS TO YOUR BACKEND URL
-    const API_BASE_URL = "http://localhost:6030";
+    const API_BASE_URL = "https://nearbuy-e-commerce.onrender.com";
     
     // DOM Elements
     const registerName = document.getElementById('registerName');
