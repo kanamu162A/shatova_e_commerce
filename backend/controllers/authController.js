@@ -6,7 +6,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 
 // Change from 10 minutes to 1 minute
-const OTP_EXPIRY_MINUTES = 1;  // 1 minute expiry (60 seconds)
+const OTP_EXPIRY_MINUTES = 5;  // 1 minute expiry (60 seconds)
 const RESET_TOKEN_EXPIRY_MINUTES = 5;  // Also 1 minute for reset OTP
 
 const generateOTP = () =>
