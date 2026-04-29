@@ -1,120 +1,159 @@
-// services/mailer.js - Fixed version with better error handling
-import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
+import transporter from "../config/mailer.js";
+import pool from "../config/db.js";
 
-dotenv.config();
+const OTP_EXPIRY = 300; // seconds
 
-// Get email configuration
-const EMAIL_USER = process.env.EMAIL_USER;
-const EMAIL_PASS = process.env.EMAIL_PASS;
-const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
-const EMAIL_PORT = process.env.EMAIL_PORT || 587;
+// Reusable beautiful email template
+const emailTemplate = ({ title, heading, message }) => {
+  return `
+    <div style="font-family: Arial, sans-serif; background:#f4f4f4; padding:30px;">
+      <div style="max-width:600px; margin:auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
 
-console.log('📧 Email Configuration:');
-console.log(`  Host: ${EMAIL_HOST}`);
-console.log(`  Port: ${EMAIL_PORT}`);
-console.log(`  User: ${EMAIL_USER ? EMAIL_USER : '❌ NOT SET'}`);
-console.log(`  Pass: ${EMAIL_PASS ? '✅ SET' : '❌ NOT SET'}`);
+        <div style="background:#111827; color:white; padding:20px; text-align:center;">
+          <h1 style="margin:0;">NearBuy</h1>
+          <p style="margin:5px 0 0;">${title}</p>
+        </div>
 
-// Create transporter
-let transporter = null;
+        <div style="padding:30px; color:#333;">
+          <h2 style="margin-top:0;">${heading}</h2>
+          <p style="line-height:1.7;">
+            ${message}
+          </p>
+        </div>
 
-if (EMAIL_USER && EMAIL_PASS) {
+        <div style="background:#f9fafb; padding:15px; text-align:center; font-size:12px; color:#777;">
+          © 2026 NearBuy • Safe buying & selling
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+// General mail sender
+export const sendMail = async ({ to, subject, text, html }) => {
   try {
-    transporter = nodemailer.createTransport({
-      host: EMAIL_HOST,
-      port: parseInt(EMAIL_PORT),
-      secure: EMAIL_PORT === '465',
-      auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS,
-      },
-      // Add timeout and debug options
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
-    });
-    
-    // Verify connection
-    transporter.verify((error, success) => {
-      if (error) {
-        console.error('❌ Email transporter verification failed:', error.message);
-      } else {
-        console.log('✅ Email transporter ready');
-      }
-    });
-  } catch (error) {
-    console.error('❌ Failed to create email transporter:', error.message);
-  }
-} else {
-  console.warn('⚠️ Email credentials missing. Set EMAIL_USER and EMAIL_PASS in .env');
-}
-
-// Simple email template
-const simpleEmailTemplate = (name, otp, expiryMinutes) => `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Verification Code</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
-    .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    .header { background: #0F172A; color: white; padding: 30px; text-align: center; }
-    .header h1 { margin: 0; font-size: 24px; }
-    .content { padding: 40px 30px; text-align: center; }
-    .otp { font-size: 48px; font-family: monospace; letter-spacing: 10px; background: #f0f0f0; padding: 20px; margin: 20px 0; border-radius: 8px; font-weight: bold; }
-    .footer { background: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #666; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>🛍️ NearBuy</h1>
-    </div>
-    <div class="content">
-      <h2>Hello ${name}!</h2>
-      <p>Your verification code is:</p>
-      <div class="otp">${otp}</div>
-      <p>This code expires in <strong>${expiryMinutes} minutes</strong>.</p>
-      <p>If you didn't request this, please ignore this email.</p>
-    </div>
-    <div class="footer">
-      <p>© 2025 NearBuy - Safe buying & selling platform</p>
-    </div>
-  </div>
-</body>
-</html>
-`;
-
-export const sendMail = async ({ to, subject, html, text }) => {
-  console.log(`\n📧 Attempting to send email to: ${to}`);
-  console.log(`Subject: ${subject}`);
-  
-  if (!transporter) {
-    console.error('❌ No email transporter available. Email not sent.');
-    console.log('💡 Please check your EMAIL_USER and EMAIL_PASS environment variables.');
-    return { success: false, error: 'No email transporter configured' };
-  }
-
-  try {
-    const mailOptions = {
-      from: `"NearBuy" <${EMAIL_USER}>`,
+    const info = await transporter.sendMail({
+      from: `"NearBuy Support" <${process.env.EMAIL_USER}>`,
       to,
       subject,
-      text: text || html?.replace(/<[^>]*>/g, '') || 'Your verification code',
-      html: html || simpleEmailTemplate('User', '000000', 5),
-    };
+      text,
+      html
+    });
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent successfully! Message ID: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
+    console.log("Email sent successfully:", info.messageId);
+
+    return {
+      success: true,
+      messageId: info.messageId
+    };
   } catch (error) {
-    console.error(`❌ Failed to send email:`);
-    console.error(`   Error: ${error.message}`);
-    console.error(`   Code: ${error.code}`);
-    console.error(`   Command: ${error.command}`);
-    if (error.response) console.error(`   Response: ${error.response}`);
-    return { success: false, error: error.message };
+    console.error("Mail Error:", error.message);
+
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
+// Create OTP, save to DB, send beautiful email
+export const createAndSendOTP = async (userId, email) => {
+  try {
+    const otp = Math.floor(100000 + Math.random() * 900000);
+
+    const expiresAt = new Date(
+      Date.now() + OTP_EXPIRY * 1000
+    );
+
+    await pool.query(
+      `
+      INSERT INTO user_otps (user_id, otp_code, expires_at)
+      VALUES ($1, $2, $3)
+      `,
+      [userId, otp, expiresAt]
+    );
+
+    const emailResult = await sendMail({
+      to: email,
+      subject: "Your Login OTP Code",
+      text: `Your OTP is ${otp}. It expires in 30 seconds.`,
+      html: emailTemplate({
+        title: "Login Verification",
+        heading: "Your One-Time Password",
+        message: `
+          Use the code below to complete your login:<br><br>
+          <strong style="font-size:32px; letter-spacing:5px;">${otp}</strong>
+          <br><br>
+          This OTP will expire in <strong>${OTP_EXPIRY} seconds</strong>.
+          <br><br>
+          If this was not you, please ignore this email.
+        `
+      })
+    });
+
+    if (!emailResult.success) {
+      throw new Error("Failed to send OTP email");
+    }
+
+    return {
+      success: true
+    };
+  } catch (error) {
+    console.error("OTP Error:", error.message);
+
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
+// Verify OTP
+export const verifyOTP = async (userId, otp) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT * FROM user_otps
+      WHERE user_id = $1 AND otp_code = $2
+      ORDER BY created_at DESC
+      LIMIT 1
+      `,
+      [userId, otp]
+    );
+
+    const otpRecord = result.rows[0];
+
+    if (!otpRecord) {
+      return {
+        success: false,
+        message: "Invalid OTP"
+      };
+    }
+
+    const now = new Date();
+
+    if (now > otpRecord.expires_at) {
+      return {
+        success: false,
+        message: "OTP expired"
+      };
+    }
+
+    await pool.query(
+      "DELETE FROM user_otps WHERE id = $1",
+      [otpRecord.id]
+    );
+
+    return {
+      success: true,
+      message: "OTP verified successfully"
+    };
+  } catch (error) {
+    console.error("Verify OTP Error:", error.message);
+
+    return {
+      success: false,
+      message: "Server error"
+    };
   }
 };
