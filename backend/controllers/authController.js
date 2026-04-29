@@ -5,9 +5,8 @@ import EmailTemplateBuilder from "../services/emailTemplates.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 
-// Change from 10 minutes to 1 minute
-const OTP_EXPIRY_MINUTES = 5;  // 1 minute expiry (60 seconds)
-const RESET_TOKEN_EXPIRY_MINUTES = 5;  // Also 1 minute for reset OTP
+const OTP_EXPIRY_MINUTES = 5;
+const RESET_TOKEN_EXPIRY_MINUTES = 5;
 
 const generateOTP = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
@@ -23,7 +22,6 @@ export const registerUser = async (req, res) => {
   try {
     const { email, phone, name, password } = req.body;
 
-    // Log incoming request for debugging
     console.log("Registration attempt for:", { email, phone, name });
 
     if (!email || !phone || !name || !password) {
@@ -33,7 +31,6 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({
@@ -42,7 +39,6 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // Validate phone number (basic validation)
     const phoneRegex = /^[0-9]{10,15}$/;
     if (!phoneRegex.test(phone.replace(/[\s\-\(\)\+]/g, ''))) {
       return res.status(400).json({
@@ -51,7 +47,6 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // Validate password strength
     if (password.length < 8) {
       return res.status(400).json({
         success: false,
@@ -59,7 +54,6 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // Check if user exists
     const existing = await pool.query(
       "SELECT id, email, phone FROM users WHERE email = $1 OR phone = $2",
       [email, phone]
@@ -98,7 +92,7 @@ export const registerUser = async (req, res) => {
 
     const user = result.rows[0];
 
-    // Send enhanced welcome email (don't await to avoid blocking response)
+    // Don't await email - let it run in background
     sendMail({
       to: email,
       subject: "🎉 Welcome to NearBuy - Let's Get Started!",
@@ -107,7 +101,7 @@ export const registerUser = async (req, res) => {
         role: "member"
       })
     }).catch(emailError => {
-      console.error("Welcome email failed but user was created:", emailError.message);
+      console.error("Welcome email failed:", emailError.message);
     });
 
     res.status(201).json({
@@ -131,7 +125,7 @@ export const registerUser = async (req, res) => {
 };
 
 // ============================
-// LOGIN - SEND OTP
+// LOGIN - SEND OTP (FIXED)
 // ============================
 export const loginUser = async (req, res) => {
   try {
@@ -145,7 +139,7 @@ export const loginUser = async (req, res) => {
     }
 
     const result = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
+      "SELECT id, email, name, password_hash FROM users WHERE email = $1",
       [email]
     );
 
@@ -167,11 +161,7 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    // Get device info from request headers
-    const device = req.headers['user-agent'] || "Unknown Device";
-    const ip = req.ip || req.headers['x-forwarded-for'] || "Unable to detect";
-
-    // Delete any existing unused OTPs for this user
+    // Clean up old OTPs
     await pool.query(
       "DELETE FROM otp_codes WHERE user_id = $1 AND purpose = 'login' AND expires_at < NOW()",
       [user.id]
@@ -186,8 +176,16 @@ export const loginUser = async (req, res) => {
       [user.id, otp, "login", expires]
     );
 
-    // Send enhanced OTP email
-    await sendMail({
+    // 🔐 CRITICAL: Log OTP to console so you can see it
+    console.log(`\n🔐 ========== LOGIN OTP ==========`);
+    console.log(`Email: ${user.email}`);
+    console.log(`OTP Code: ${otp}`);
+    console.log(`Expires in: ${OTP_EXPIRY_MINUTES} minutes`);
+    console.log(`Time: ${new Date().toISOString()}`);
+    console.log(`=================================\n`);
+
+    // DON'T AWAIT email - send in background (this was the main issue!)
+    sendMail({
       to: user.email,
       subject: "🔐 Your Login Verification Code - NearBuy",
       html: EmailTemplateBuilder.otpEmail(
@@ -196,8 +194,13 @@ export const loginUser = async (req, res) => {
         OTP_EXPIRY_MINUTES,
         "login"
       )
+    }).then(() => {
+      console.log(`✅ Email sent to ${user.email}`);
+    }).catch(emailError => {
+      console.error(`❌ Email failed for ${user.email}:`, emailError.message);
     });
 
+    // Return response immediately WITHOUT waiting for email
     return res.status(200).json({
       success: true,
       message: "OTP sent to your email",
@@ -205,19 +208,21 @@ export const loginUser = async (req, res) => {
         id: user.id,
         email: user.email,
         name: user.name
-      }
+      },
+      expiresIn: OTP_EXPIRY_MINUTES * 60
     });
+    
   } catch (error) {
     console.error("Login error:", error.message);
     res.status(500).json({
       success: false,
-      message: "Server error"
+      message: "Server error. Please try again."
     });
   }
 };
 
 // ============================
-// VERIFY OTP
+// VERIFY OTP (FIXED)
 // ============================
 export const verifyLoginOTP = async (req, res) => {
   try {
@@ -230,69 +235,45 @@ export const verifyLoginOTP = async (req, res) => {
       });
     }
 
-    // Get user details
-    const userResult = await pool.query(
-      "SELECT id, email, name, role FROM users WHERE id = $1",
-      [userId]
-    );
-
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found"
-      });
-    }
-
-    const user = userResult.rows[0];
-
-    // Find valid OTP
-    const otpResult = await pool.query(
-      `SELECT * FROM otp_codes
-       WHERE user_id = $1
-       AND otp = $2
-       AND purpose = 'login'
-       AND expires_at > NOW()
-       ORDER BY expires_at DESC
+    // Single query to verify OTP and get user
+    const result = await pool.query(
+      `SELECT u.id, u.email, u.name, u.role, o.id as otp_id
+       FROM users u
+       JOIN otp_codes o ON u.id = o.user_id
+       WHERE u.id = $1 
+       AND o.otp = $2 
+       AND o.purpose = 'login'
+       AND o.expires_at > NOW()
+       ORDER BY o.expires_at DESC
        LIMIT 1`,
       [userId, otp]
     );
 
-    if (otpResult.rows.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(400).json({
         success: false,
         message: "Invalid or expired OTP"
       });
     }
 
-    const record = otpResult.rows[0];
+    const user = result.rows[0];
 
     // Delete used OTP
-    await pool.query("DELETE FROM otp_codes WHERE id = $1", [record.id]);
-
-    // Send welcome back email with login details (don't await)
-    const device = req.headers['user-agent'] || "Unknown Device";
-    const ip = req.ip || req.headers['x-forwarded-for'] || "Unable to detect";
-    
-    sendMail({
-      to: user.email,
-      subject: "👋 Welcome Back to NearBuy!",
-      html: EmailTemplateBuilder.welcomeBackEmail(user.name, {
-        ip: ip,
-        device: device,
-        location: "Location services unavailable",
-        browser: req.headers['user-agent']?.split(' ')[0] || "Unknown",
-        os: req.headers['user-agent']?.match(/\(([^)]+)\)/)?.[1] || "Unknown"
-      })
-    }).catch(emailError => {
-      console.error("Welcome back email failed:", emailError.message);
-    });
+    await pool.query("DELETE FROM otp_codes WHERE id = $1", [user.otp_id]);
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user.id, email: user.email, name: user.name, role: user.role || 'user' },
+      { 
+        userId: user.id, 
+        email: user.email, 
+        name: user.name, 
+        role: user.role || 'user' 
+      },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
+
+    console.log(`✅ User logged in: ${user.email}`);
 
     return res.status(200).json({
       success: true,
@@ -305,17 +286,18 @@ export const verifyLoginOTP = async (req, res) => {
       },
       token: token
     });
+    
   } catch (error) {
     console.error("OTP verification error:", error.message);
     res.status(500).json({
       success: false,
-      message: "Server error"
+      message: "Server error. Please try again."
     });
   }
 };
 
 // ============================
-// RESEND OTP
+// RESEND OTP (FIXED)
 // ============================
 export const resendOTP = async (req, res) => {
   try {
@@ -342,7 +324,6 @@ export const resendOTP = async (req, res) => {
 
     const user = userResult.rows[0];
 
-    // Delete old OTPs
     await pool.query(
       "DELETE FROM otp_codes WHERE user_id = $1 AND purpose = 'login'",
       [user.id]
@@ -357,7 +338,10 @@ export const resendOTP = async (req, res) => {
       [user.id, otp, "login", expires]
     );
 
-    await sendMail({
+    console.log(`\n🔄 Resend OTP for ${user.email}: ${otp}`);
+
+    // Don't await email
+    sendMail({
       to: user.email,
       subject: "🔄 New Login Verification Code - NearBuy",
       html: EmailTemplateBuilder.otpEmail(
@@ -366,12 +350,14 @@ export const resendOTP = async (req, res) => {
         OTP_EXPIRY_MINUTES,
         "login"
       )
-    });
+    }).catch(err => console.error("Resend email failed:", err.message));
 
     return res.status(200).json({
       success: true,
-      message: "New OTP sent to your email"
+      message: "New OTP sent to your email",
+      expiresIn: OTP_EXPIRY_MINUTES * 60
     });
+    
   } catch (error) {
     console.error("Resend OTP error:", error.message);
     res.status(500).json({
@@ -382,7 +368,7 @@ export const resendOTP = async (req, res) => {
 };
 
 // ============================
-// FORGOT PASSWORD - SEND OTP (Using your existing table structure)
+// FORGOT PASSWORD - SEND OTP
 // ============================
 export const forgotPassword = async (req, res) => {
   try {
@@ -403,14 +389,12 @@ export const forgotPassword = async (req, res) => {
     const user = result.rows[0];
 
     if (!user) {
-      // Don't reveal that user doesn't exist for security
       return res.status(200).json({
         success: true,
         message: "If an account exists with this email, you will receive a password reset OTP"
       });
     }
 
-    // Delete old password reset entries
     await pool.query(
       "DELETE FROM password_resets WHERE user_id = $1",
       [user.id]
@@ -419,15 +403,16 @@ export const forgotPassword = async (req, res) => {
     const otp = generateOTP();
     const expires = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
-    // Insert into your existing password_resets table
     await pool.query(
       `INSERT INTO password_resets (user_id, otp, expires_at, created_at)
        VALUES ($1, $2, $3, NOW())`,
       [user.id, otp, expires]
     );
 
-    // Send OTP email for password reset
-    await sendMail({
+    console.log(`\n🔑 Password Reset OTP for ${user.email}: ${otp}`);
+
+    // Don't await email
+    sendMail({
       to: email,
       subject: "🔑 Password Reset OTP - NearBuy",
       html: EmailTemplateBuilder.otpEmail(
@@ -436,13 +421,15 @@ export const forgotPassword = async (req, res) => {
         OTP_EXPIRY_MINUTES,
         "reset"
       )
-    });
+    }).catch(err => console.error("Reset email failed:", err.message));
 
     return res.status(200).json({
       success: true,
       message: "Password reset OTP sent to your email",
-      userId: user.id
+      userId: user.id,
+      expiresIn: OTP_EXPIRY_MINUTES * 60
     });
+    
   } catch (error) {
     console.error("Forgot password error:", error.message);
     res.status(500).json({
@@ -453,7 +440,7 @@ export const forgotPassword = async (req, res) => {
 };
 
 // ============================
-// RESET PASSWORD WITH OTP (Using your existing table)
+// RESET PASSWORD WITH OTP
 // ============================
 export const resetPassword = async (req, res) => {
   try {
@@ -466,7 +453,6 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Validate password strength
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({
@@ -475,25 +461,14 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    const userResult = await pool.query(
-      "SELECT id FROM users WHERE id = $1",
-      [userId]
-    );
-
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found"
-      });
-    }
-
-    // Find valid OTP in password_resets table
     const otpResult = await pool.query(
-      `SELECT * FROM password_resets
-       WHERE user_id = $1
-       AND otp = $2
-       AND expires_at > NOW()
-       ORDER BY expires_at DESC
+      `SELECT pr.*, u.name, u.email 
+       FROM password_resets pr
+       JOIN users u ON pr.user_id = u.id
+       WHERE pr.user_id = $1
+       AND pr.otp = $2
+       AND pr.expires_at > NOW()
+       ORDER BY pr.expires_at DESC
        LIMIT 1`,
       [userId, otp]
     );
@@ -508,34 +483,26 @@ export const resetPassword = async (req, res) => {
     const record = otpResult.rows[0];
     const hashed = await bcrypt.hash(newPassword, 10);
 
-    // Update password
     await pool.query(
       "UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2",
       [hashed, userId]
     );
 
-    // Delete used OTP record
     await pool.query("DELETE FROM password_resets WHERE id = $1", [record.id]);
 
-    // Get user details for success email
-    const userEmailResult = await pool.query(
-      "SELECT name, email FROM users WHERE id = $1",
-      [userId]
-    );
+    console.log(`✅ Password reset successful for: ${record.email}`);
 
-    if (userEmailResult.rows.length > 0) {
-      // Send password reset success email
-      await sendMail({
-        to: userEmailResult.rows[0].email,
-        subject: "✅ Password Reset Successful - NearBuy",
-        html: EmailTemplateBuilder.passwordResetSuccessEmail(userEmailResult.rows[0].name)
-      });
-    }
+    sendMail({
+      to: record.email,
+      subject: "✅ Password Reset Successful - NearBuy",
+      html: EmailTemplateBuilder.passwordResetSuccessEmail(record.name)
+    }).catch(err => console.error("Success email failed:", err.message));
 
     return res.status(200).json({
       success: true,
       message: "Password reset successful! You can now login with your new password."
     });
+    
   } catch (error) {
     console.error("Reset password error:", error.message);
     res.status(500).json({
@@ -582,7 +549,7 @@ export const getUserById = async (req, res) => {
 // ============================
 export const changePassword = async (req, res) => {
   try {
-    const { userId } = req.user; // From auth middleware
+    const { userId } = req.user;
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
@@ -592,7 +559,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Validate new password strength
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({
@@ -629,7 +595,6 @@ export const changePassword = async (req, res) => {
       [hashed, userId]
     );
 
-    // Send security alert for password change
     sendMail({
       to: userResult.rows[0].email,
       subject: "🔐 Your Password Has Been Changed - NearBuy",
@@ -650,6 +615,7 @@ export const changePassword = async (req, res) => {
       success: true,
       message: "Password changed successfully"
     });
+    
   } catch (error) {
     console.error("Change password error:", error.message);
     res.status(500).json({
@@ -657,4 +623,24 @@ export const changePassword = async (req, res) => {
       message: "Server error"
     });
   }
-}; // <-- This is the correct closing brace for changePassword function
+};
+
+// ============================
+// HEALTH CHECK
+// ============================
+export const healthCheck = async (req, res) => {
+  try {
+    await pool.query('SELECT NOW()');
+    res.status(200).json({
+      success: true,
+      status: 'healthy',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(503).json({
+      success: false,
+      status: 'unhealthy',
+      error: error.message
+    });
+  }
+};
