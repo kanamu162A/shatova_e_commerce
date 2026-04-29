@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>NearBuy · Dashboard</title>
+  <title>NearBuy · Next‑Gen Marketplace</title>
 
-  <!-- Google Fonts & Chart.js -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
@@ -18,1089 +18,578 @@
     }
 
     :root {
-      --primary: #3b82f6;
-      --primary-dark: #1e40af;
-      --primary-light: #dbeafe;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --dark: #0f172a;
+      --primary: #0f2b3d;
+      --primary-dark: #071a24;
+      --primary-glow: #2c7da0;
+      --accent: #ffb74d;
+      --accent-dark: #f9a825;
+      --success: #2ecc71;
+      --warning: #f39c12;
+      --danger: #e74c3c;
+      --dark-bg: #0a1922;
+      --card-bg: #ffffff;
       --gray-50: #f8fafc;
       --gray-100: #f1f5f9;
       --gray-200: #e2e8f0;
-      --gray-300: #cbd5e1;
-      --gray-400: #94a3b8;
       --gray-600: #475569;
       --gray-800: #1e293b;
-      --white: #ffffff;
-      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-      --radius-md: 0.75rem;
-      --radius-lg: 1rem;
-      --radius-xl: 1.25rem;
+      --shadow-xl: 0 20px 35px -12px rgba(0,0,0,0.15);
+      --radius-2xl: 1.5rem;
+      --radius-xl: 1rem;
     }
 
     body {
-      font-family: 'Inter', system-ui, sans-serif;
-      background: linear-gradient(135deg, #f0f4fe 0%, #e2e8f0 100%);
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at 10% 20%, #eef2f7, #d9e2ec);
       min-height: 100vh;
-      color: var(--dark);
+      color: #0b2b35;
     }
 
     /* Layout */
-    .dashboard-container {
+    .app-wrapper {
       display: flex;
       min-height: 100vh;
     }
 
-    /* Sidebar */
+    /* SIDEBAR — premium glassmorph */
     .sidebar {
       width: 280px;
-      background: linear-gradient(180deg, var(--dark) 0%, #1e293b 100%);
-      color: var(--white);
+      background: rgba(10, 25, 34, 0.96);
+      backdrop-filter: blur(2px);
+      color: white;
       position: fixed;
       height: 100vh;
       overflow-y: auto;
-      transition: transform 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
       z-index: 100;
+      border-right: 1px solid rgba(255,255,255,0.08);
     }
 
     .sidebar-header {
-      padding: 1.5rem;
+      padding: 2rem 1.5rem;
       text-align: center;
       border-bottom: 1px solid rgba(255,255,255,0.1);
     }
 
-    .sidebar-logo {
-      font-size: 1.8rem;
+    .logo {
+      font-size: 2rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #fff, #94a3b8);
+      background: linear-gradient(135deg, #fff, #7ab3c8);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
+      letter-spacing: -0.5px;
     }
 
-    .user-info {
+    .user-pod {
       padding: 1.5rem;
       text-align: center;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      margin: 1rem;
+      border-radius: var(--radius-xl);
     }
 
-    .user-avatar {
-      width: 70px;
-      height: 70px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    .avatar {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(145deg, var(--primary-glow), #1f5e7e);
       border-radius: 50%;
+      margin: 0 auto 0.8rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 1rem;
-      font-size: 1.8rem;
+      font-size: 2rem;
       font-weight: 700;
-    }
-
-    .user-name {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-    }
-
-    .user-role {
-      font-size: 0.8rem;
-      opacity: 0.7;
-    }
-
-    /* Navigation */
-    .nav-menu {
-      padding: 1rem 0;
+      box-shadow: 0 10px 20px -5px rgba(0,0,0,0.3);
     }
 
     .nav-item {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.875rem 1.5rem;
-      color: var(--gray-300);
-      text-decoration: none;
-      transition: all 0.3s ease;
+      gap: 1rem;
+      padding: 0.9rem 1.8rem;
+      margin: 0.3rem 0.8rem;
+      border-radius: 1rem;
+      color: #cbd5e6;
+      transition: all 0.2s;
       cursor: pointer;
     }
 
-    .nav-item:hover {
-      background: rgba(255,255,255,0.1);
-      color: var(--white);
-    }
-
+    .nav-item i { width: 1.6rem; font-size: 1.2rem; }
     .nav-item.active {
-      background: linear-gradient(90deg, var(--primary), transparent);
-      color: var(--white);
-      border-left: 3px solid var(--primary);
+      background: linear-gradient(95deg, var(--primary-glow), #144d66);
+      color: white;
+      box-shadow: 0 6px 12px -6px rgba(0,0,0,0.3);
     }
+    .nav-item:hover:not(.active) { background: rgba(255,255,255,0.1); color: white; }
 
-    .nav-item i {
-      width: 1.5rem;
-      font-size: 1.1rem;
-    }
-
-    /* Main Content */
+    /* main */
     .main-content {
       flex: 1;
       margin-left: 280px;
-      padding: 1.5rem;
+      padding: 1.8rem;
     }
 
-    /* Top Bar */
-    .top-bar {
-      background: var(--white);
-      border-radius: var(--radius-lg);
-      padding: 1rem 1.5rem;
-      margin-bottom: 1.5rem;
+    .top-glass {
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(12px);
+      border-radius: var(--radius-2xl);
+      padding: 1rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: var(--shadow-sm);
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid rgba(255,255,255,0.6);
     }
 
     .page-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
-
-    .mobile-menu-btn {
-      display: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
-
-    .logout-btn {
-      background: var(--danger);
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
-    }
-
-    .logout-btn:hover {
-      background: #dc2626;
-      transform: translateY(-1px);
-    }
-
-    /* Cards */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .stat-card {
-      background: var(--white);
-      border-radius: var(--radius-lg);
-      padding: 1.25rem;
-      box-shadow: var(--shadow-sm);
-      transition: transform 0.3s ease;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-    }
-
-    .stat-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.75rem;
-    }
-
-    .stat-icon {
-      width: 48px;
-      height: 48px;
-      background: var(--primary-light);
-      border-radius: var(--radius-md);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      color: var(--primary);
-    }
-
-    .stat-value {
       font-size: 1.8rem;
       font-weight: 800;
+      background: linear-gradient(135deg, #0f2b3d, #1f5e7e);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
 
-    .stat-label {
-      color: var(--gray-600);
-      font-size: 0.85rem;
+    .logout-glass {
+      background: rgba(231,76,60,0.9);
+      border: none;
+      padding: 0.6rem 1.3rem;
+      border-radius: 2rem;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
     }
 
-    /* Wallet Card */
-    .wallet-card {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: var(--white);
-      border-radius: var(--radius-xl);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
+    /* stat cards */
+    .stats-arena {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
     }
 
-    .wallet-balance {
-      font-size: 2.5rem;
-      font-weight: 800;
-      margin: 0.5rem 0;
+    .neo-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-2xl);
+      padding: 1.3rem 1.5rem;
+      box-shadow: var(--shadow-xl);
+      transition: all 0.25s;
+      border: 1px solid rgba(0,0,0,0.03);
     }
 
-    .wallet-actions {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1rem;
+    .wallet-premium {
+      background: linear-gradient(115deg, #0f2b3d, #0f3b4f);
+      color: white;
     }
 
-    .wallet-btn {
+    .btn-wallet {
       background: rgba(255,255,255,0.2);
       border: none;
       padding: 0.5rem 1rem;
-      border-radius: var(--radius-md);
-      color: var(--white);
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: all 0.3s ease;
+      border-radius: 2rem;
+      color: white;
+      font-weight: 500;
+      margin-right: 0.6rem;
+      transition: 0.2s;
     }
 
-    .wallet-btn:hover {
-      background: rgba(255,255,255,0.3);
-    }
-
-    /* Sections */
-    .section-card {
-      background: var(--white);
-      border-radius: var(--radius-lg);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .section-title {
-      font-size: 1.2rem;
+    .badge-status {
+      display: inline-block;
+      padding: 0.2rem 0.8rem;
+      border-radius: 40px;
+      font-size: 0.7rem;
       font-weight: 700;
     }
 
-    /* Tables & Lists */
-    .orders-table {
-      width: 100%;
-      overflow-x: auto;
+    /* product grid / store */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    .product-tile {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 1rem;
+      transition: 0.25s ease;
+      border: 1px solid #eef2f9;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.03);
     }
 
-    th, td {
-      padding: 0.75rem;
-      text-align: left;
-      border-bottom: 1px solid var(--gray-200);
+    .review-star {
+      color: #ffb74d;
+      letter-spacing: 2px;
     }
 
-    th {
-      font-weight: 600;
-      color: var(--gray-600);
-      font-size: 0.85rem;
+    .comment-section {
+      margin-top: 0.8rem;
+      background: #f8fafc;
+      border-radius: 1rem;
+      padding: 0.6rem;
+      font-size: 0.8rem;
     }
 
-    .status-badge {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .status-completed { background: #d1fae5; color: #065f46; }
-    .status-processing { background: #fed7aa; color: #92400e; }
-    .status-pending { background: #fef3c7; color: #92400e; }
-
-    /* Transaction List */
-    .transaction-item {
+    .flex-between {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.75rem;
-      border-bottom: 1px solid var(--gray-200);
     }
 
-    .transaction-left {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .transaction-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .transaction-icon.credit { background: #d1fae5; color: #10b981; }
-    .transaction-icon.debit { background: #fee2e2; color: #ef4444; }
-
-    .transaction-amount.credit { color: #10b981; font-weight: 600; }
-    .transaction-amount.debit { color: #ef4444; font-weight: 600; }
-
-    /* Filters */
-    .filter-group {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .filter-btn {
-      padding: 0.375rem 1rem;
-      border: 1px solid var(--gray-200);
-      background: var(--white);
-      border-radius: var(--radius-md);
+    button {
       cursor: pointer;
-      font-size: 0.85rem;
-      transition: all 0.3s ease;
     }
 
-    .filter-btn.active {
-      background: var(--primary);
-      color: var(--white);
-      border-color: var(--primary);
-    }
-
-    /* Products Grid */
-    .products-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1rem;
-    }
-
-    .product-card {
-      background: var(--gray-50);
-      border-radius: var(--radius-md);
-      padding: 1rem;
-      border: 1px solid var(--gray-200);
-    }
-
-    /* Forms */
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      font-size: 0.85rem;
-    }
-
-    .form-group input, .form-group select, .form-group textarea {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--gray-200);
-      border-radius: var(--radius-md);
-      font-family: inherit;
-    }
-
-    .form-group input:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    /* Modals */
     .modal {
       display: none;
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 1000;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(5px);
       align-items: center;
       justify-content: center;
+      z-index: 1000;
     }
-
-    .modal.active {
-      display: flex;
-    }
-
-    .modal-content {
-      background: var(--white);
-      border-radius: var(--radius-lg);
+    .modal.active { display: flex; }
+    .modal-card {
+      background: white;
       max-width: 500px;
       width: 90%;
-      padding: 1.5rem;
+      border-radius: 2rem;
+      padding: 2rem;
     }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-
-    .close-modal {
-      cursor: pointer;
-      font-size: 1.5rem;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
-
-    .btn-primary, .btn-secondary, .btn-danger {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: var(--white);
-    }
-
-    .btn-secondary {
-      background: var(--gray-200);
-      color: var(--dark);
-    }
-
-    .btn-danger {
-      background: var(--danger);
-      color: var(--white);
-    }
-
-    /* Toast */
     .toast {
       position: fixed;
       bottom: 2rem;
       right: 2rem;
-      padding: 1rem 1.5rem;
-      border-radius: var(--radius-md);
+      background: #1e293b;
       color: white;
-      z-index: 1100;
-      display: none;
-      animation: slideIn 0.3s ease;
+      padding: 1rem 1.8rem;
+      border-radius: 3rem;
+      z-index: 2000;
+      opacity: 0;
+      transition: 0.2s;
+      pointer-events: none;
     }
 
-    .toast.show {
-      display: block;
-    }
-
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-
-    /* Pages */
-    .page {
-      display: none;
-    }
-
-    .page.active {
-      display: block;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 3rem;
-      color: var(--gray-400);
-    }
-
-    /* KYC Progress */
-    .kyc-progress {
-      margin-top: 1rem;
-    }
-
-    .progress-bar {
-      height: 8px;
-      background: var(--gray-200);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: var(--primary);
-      transition: width 0.3s ease;
-    }
-
-    /* Responsive */
     @media (max-width: 768px) {
-      .sidebar {
-        transform: translateX(-100%);
-      }
-      
-      .sidebar.mobile-open {
-        transform: translateX(0);
-      }
-      
-      .main-content {
-        margin-left: 0;
-      }
-      
-      .mobile-menu-btn {
-        display: block;
-      }
-      
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 480px) {
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .wallet-actions {
-        flex-direction: column;
-      }
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.mobile-open { transform: translateX(0); }
+      .main-content { margin-left: 0; }
+      .mobile-menu-btn { display: block; }
     }
   </style>
 </head>
 <body>
- <div class="dashboard-container">
-  <!-- Sidebar -->
+<div class="app-wrapper">
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo">NEARBUY</div>
-    </div>
-    <div class="user-info">
-      <div class="user-avatar" id="userAvatar">JD</div>
-      <div class="user-name" id="userName">shatova</div>
-      <div class="user-role" id="userRole">Buyer</div>
+    <div class="sidebar-header"><div class="logo">NEARBUY</div></div>
+    <div class="user-pod">
+      <div class="avatar" id="globalAvatar">JD</div>
+      <div class="fw-bold" id="globalName">shatova</div>
+      <div class="text-sm opacity-75" id="globalRole">⭐ Buyer</div>
     </div>
     <nav class="nav-menu">
-      <div class="nav-item active" data-page="overview">
-        <i class="fas fa-chart-line"></i> <span>Dashboard</span>
-      </div>
-      <div class="nav-item" data-page="orders">
-        <i class="fas fa-shopping-bag"></i> <span>My Orders</span>
-      </div>
-      <div class="nav-item" data-page="wallet">
-        <i class="fas fa-wallet"></i> <span>Wallet</span>
-      </div>
-      <div class="nav-item" data-page="transactions">
-        <i class="fas fa-exchange-alt"></i> <span>Transactions</span>
-      </div>
-      <div class="nav-item" data-page="sell">
-        <i class="fas fa-store"></i> <span>Store Center</span>
-      </div>
-      <div class="nav-item" data-page="kyc">
-        <i class="fas fa-id-card"></i> <span>KYC Verification</span>
-      </div>
-      <div class="nav-item" data-page="settings">
-        <i class="fas fa-cog"></i> <span>Settings</span>
-      </div>
+      <div class="nav-item active" data-page="overview"><i class="fas fa-chart-line"></i> Dashboard</div>
+      <div class="nav-item" data-page="market"><i class="fas fa-store"></i> Marketplace</div>
+      <div class="nav-item" data-page="orders"><i class="fas fa-truck"></i> My Orders</div>
+      <div class="nav-item" data-page="wallet"><i class="fas fa-coins"></i> Wallet</div>
+      <div class="nav-item" data-page="myStore"><i class="fas fa-shop"></i> My Store</div>
+      <div class="nav-item" data-page="kyc"><i class="fas fa-id-card"></i> Verification</div>
     </nav>
   </aside>
 
-  <!-- Main Content -->
   <main class="main-content">
-    <div class="top-bar">
-      <div class="mobile-menu-btn" id="mobileMenuBtn">
-        <i class="fas fa-bars"></i>
-      </div>
-      <h1 class="page-title" id="pageTitle">Dashboard Overview</h1>
-      <button class="logout-btn" id="logoutBtn">
-        <i class="fas fa-sign-out-alt"></i> Logout
-      </button>
+    <div class="top-glass">
+      <i class="fas fa-bars mobile-menu-btn" id="mobileMenuBtn" style="font-size:1.5rem; cursor:pointer; display:none;"></i>
+      <h1 class="page-title" id="dynamicTitle">✨ Marketplace Pulse</h1>
+      <button class="logout-glass" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Exit</button>
     </div>
 
-    <!-- Overview Page -->
+    <!-- PAGES -->
     <div id="overviewPage" class="page active">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-header">
-            <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
-          </div>
-          <div class="stat-value" id="totalOrders">0</div>
-          <div class="stat-label">Total Orders</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-header">
-            <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
-          </div>
-          <div class="stat-value" id="totalSpent">$0</div>
-          <div class="stat-label">Total Spent</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-header">
-            <div class="stat-icon"><i class="fas fa-clock"></i></div>
-          </div>
-          <div class="stat-value" id="pendingOrders">0</div>
-          <div class="stat-label">Pending Orders</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-header">
-            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
-          </div>
-          <div class="stat-value" id="completedOrders">0</div>
-          <div class="stat-label">Completed Orders</div>
-        </div>
+      <div class="stats-arena">
+        <div class="neo-card"><div><i class="fas fa-shopping-bag fa-2x text-primary"></i></div><div class="fs-3 fw-800" id="statOrders">0</div><div>📦 Total Orders</div></div>
+        <div class="neo-card"><div><i class="fas fa-dollar-sign fa-2x text-success"></i></div><div class="fs-3 fw-800" id="statSpent">$0</div><div>💰 Spent</div></div>
+        <div class="neo-card"><div><i class="fas fa-clock fa-2x text-warning"></i></div><div class="fs-3 fw-800" id="statPending">0</div><div>⏳ Pending</div></div>
+        <div class="neo-card"><div><i class="fas fa-star fa-2x text-accent"></i></div><div class="fs-3 fw-800" id="avgRating">0.0</div><div>⭐ Seller rating</div></div>
       </div>
-
-      <div class="wallet-card">
-        <div>Wallet Balance</div>
-        <div class="wallet-balance" id="walletBalance">$0.00</div>
-        <div class="wallet-actions">
-          <button class="wallet-btn" onclick="openModal('addFundsModal')"><i class="fas fa-plus"></i> Add Funds</button>
-          <button class="wallet-btn" onclick="openModal('withdrawModal')"><i class="fas fa-download"></i> Withdraw</button>
-          <button class="wallet-btn" onclick="openModal('sendMoneyModal')"><i class="fas fa-paper-plane"></i> Send Money</button>
-        </div>
+      <div class="wallet-premium neo-card" style="margin-bottom:1.5rem;">
+        <div>💎 Wallet Balance</div>
+        <div class="fs-1 fw-800" id="walletMainBalance">$0.00</div>
+        <div style="margin-top: 0.8rem;"><button class="btn-wallet" onclick="openDynamicModal('addFundsModal')">➕ Add funds</button><button class="btn-wallet" onclick="openDynamicModal('sendMoneyModal')">✈️ Send</button></div>
       </div>
-
-      <div class="section-card">
-        <div class="section-header">
-          <h3 class="section-title">Recent Orders</h3>
-          <button class="filter-btn view-all-btn" data-page="orders">View All →</button>
-        </div>
-        <div class="orders-table">
-          <table id="recentOrdersTable">
-            <thead>
-              <tr><th>Order ID</th><th>Total</th><th>Status</th><th>Date</th></tr>
-            </thead>
-            <tbody id="recentOrdersList"></tbody>
-          </table>
-        </div>
-      </div>
+      <div class="neo-card"><div class="flex-between"><h3>🔥 Top rated products</h3><span>by fastest delivery & trust</span></div><div id="topProductsPreview" class="product-grid" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr));"></div></div>
     </div>
 
-    <!-- Orders Page -->
-    <div id="ordersPage" class="page">
-      <div class="section-card">
-        <div class="section-header">
-          <h3 class="section-title">All Orders</h3>
-          <div class="filter-group order-filters">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="pending">Pending</button>
-            <button class="filter-btn" data-filter="processing">Processing</button>
-            <button class="filter-btn" data-filter="completed">Completed</button>
-          </div>
-        </div>
-        <div id="ordersList"></div>
-      </div>
+    <!-- MARKETPLACE (buyer view + comment/review) -->
+    <div id="marketPage" class="page">
+      <div class="neo-card"><h2>🛍️ Global Storefront</h2><div id="marketplaceProducts" class="product-grid"></div></div>
     </div>
 
-    <!-- Wallet Page -->
+    <!-- ORDERS -->
+    <div id="ordersPage" class="page"><div class="neo-card"><h2>📋 Purchase history</h2><div id="ordersContainer"></div></div></div>
+
+    <!-- WALLET + TRANSACTIONS -->
     <div id="walletPage" class="page">
-      <div class="wallet-card">
-        <div>Current Balance</div>
-        <div class="wallet-balance" id="walletBalancePage">$0.00</div>
-        <div class="wallet-actions">
-          <button class="wallet-btn" onclick="openModal('addFundsModal')"><i class="fas fa-plus"></i> Add Funds</button>
-          <button class="wallet-btn" onclick="openModal('withdrawModal')"><i class="fas fa-download"></i> Withdraw</button>
-          <button class="wallet-btn" onclick="openModal('sendMoneyModal')"><i class="fas fa-paper-plane"></i> Send Money</button>
-        </div>
-      </div>
-      <div class="section-card">
-        <div class="section-header">
-          <h3 class="section-title">Wallet Summary</h3>
-        </div>
-        <div class="stats-grid">
-          <div class="stat-card"><div class="stat-value" id="totalDeposited">$0</div><div class="stat-label">Total Deposited</div></div>
-          <div class="stat-card"><div class="stat-value" id="totalWithdrawn">$0</div><div class="stat-label">Total Withdrawn</div></div>
-          <div class="stat-card"><div class="stat-value" id="totalWalletSpent">$0</div><div class="stat-label">Total Spent</div></div>
-        </div>
+      <div class="neo-card wallet-premium"><div>💰 Current Balance</div><div class="fs-1 fw-800" id="walletPageBalance">$0</div></div>
+      <div class="neo-card"><h3>📜 Transaction ledger</h3><div id="transactionList"></div></div>
+    </div>
+
+    <!-- MY STORE (seller dashboard) -->
+    <div id="myStorePage" class="page">
+      <div class="neo-card"><div class="flex-between"><h2>🏪 My Storefront</h2><button id="becomeSellerBtnGlobal" class="btn-wallet" style="background:#0f2b3d; color:white;">✨ Become a seller</button><button id="addProductBtnStore" class="btn-wallet" style="background:#2c7da0;">➕ Add Product</button></div>
+      <div id="sellerStatsArea" class="stats-arena" style="display:none;"><div class="neo-card"><span>📦 Products</span><div class="fs-3 fw-800" id="sellerProductCount">0</div></div><div class="neo-card"><span>💰 Total sales</span><div class="fs-3 fw-800" id="sellerTotalSales">$0</div></div><div class="neo-card"><span>⭐ Avg rating</span><div class="fs-3 fw-800" id="sellerAvgRate">0.0</div></div></div>
+      <div id="sellerProductsGrid" class="product-grid"></div>
+      <div id="sellerNotActiveMsg" class="empty-state" style="padding:2rem; text-align:center;">🔐 Complete KYC and click "Become a seller" to start selling</div>
       </div>
     </div>
 
-    <!-- Transactions Page -->
-    <div id="transactionsPage" class="page">
-      <div class="section-card">
-        <div class="section-header">
-          <h3 class="section-title">Transaction History</h3>
-          <div class="filter-group transaction-filters">
-            <button class="filter-btn active" data-tx-filter="all">All</button>
-            <button class="filter-btn" data-tx-filter="credit">Credits</button>
-            <button class="filter-btn" data-tx-filter="debit">Debits</button>
-          </div>
-        </div>
-        <div id="transactionsList"></div>
-      </div>
-    </div>
-
-    <!-- Sell Center Page -->
-    <div id="sellPage" class="page">
-      <div class="section-card">
-        <div class="section-header">
-          <h3 class="section-title">Seller Dashboard</h3>
-          <button class="btn-primary" id="addProductBtn" style="display:none;"><i class="fas fa-plus"></i> Add Product</button>
-        </div>
-        <div id="sellerRequirementMsg" class="empty-state" style="display:none;">Complete KYC verification to start selling</div>
-        <div id="sellerStats" class="stats-grid" style="display:none;">
-          <div class="stat-card"><div class="stat-value" id="totalProducts">0</div><div class="stat-label">Total Products</div></div>
-          <div class="stat-card"><div class="stat-value" id="totalSales">$0</div><div class="stat-label">Total Sales</div></div>
-          <div class="stat-card"><div class="stat-value" id="activeListings">0</div><div class="stat-label">Active Listings</div></div>
-        </div>
-        <div id="productsList" class="products-grid"></div>
-        <div id="sellerActions" style="display:none; margin-top:1rem;">
-          <button class="btn-primary" id="becomeSellerBtn" style="display:none;">Become a Seller</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- KYC Page -->
-    <div id="kycPage" class="page">
-      <div class="section-card">
-        <div class="section-header">
-          <h3 class="section-title">KYC Verification</h3>
-        </div>
-        <div id="kycStatus">
-          <div class="kyc-progress">
-            <div class="progress-bar"><div class="progress-fill" id="kycProgressBar" style="width:0%"></div></div>
-            <p style="margin-top:0.5rem;" id="kycStatusText">Not Started</p>
-          </div>
-        </div>
-        <form id="kycForm" style="margin-top:1.5rem;">
-          <div class="form-group"><label>Full Name</label><input type="text" id="kycFullName" placeholder="Enter your full name" /></div>
-          <div class="form-group"><label>ID Type</label><select id="kycIdType"><option>Passport</option><option>National ID</option><option>Driver's License</option></select></div>
-          <div class="form-group"><label>ID Number</label><input type="text" id="kycIdNumber" placeholder="Enter ID number" /></div>
-          <div class="form-group"><label>Address</label><textarea id="kycAddress" rows="2" placeholder="Your residential address"></textarea></div>
-          <button type="button" class="btn-primary" id="submitKycBtn">Submit KYC</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Settings Page -->
-    <div id="settingsPage" class="page">
-      <div class="section-card">
-        <div class="section-header"><h3 class="section-title">Profile Settings</h3></div>
-        <form id="settingsForm">
-          <div class="form-group"><label>Name</label><input type="text" id="settingsName" /></div>
-          <div class="form-group"><label>Email</label><input type="email" id="settingsEmail" disabled /></div>
-          <div class="form-group"><label>Phone</label><input type="tel" id="settingsPhone" /></div>
-          <button type="button" class="btn-primary" id="saveSettingsBtn">Save Changes</button>
-        </form>
-      </div>
-    </div>
+    <!-- KYC -->
+    <div id="kycPage" class="page"><div class="neo-card"><h3>📄 Identity verification</h3><div class="progress"><div style="height:8px; background:#e2e8f0; border-radius:4px;"><div id="kycFill" style="width:0%; height:8px; background:#2c7da0; border-radius:4px;"></div></div><p id="kycStatusMsg">Not started</p></div>
+    <form id="kycFormModal"><input type="text" id="kycName" placeholder="Full legal name" class="form-control my-2" style="width:100%; padding:0.8rem; margin:0.5rem 0; border-radius:1rem;"><input type="text" id="kycId" placeholder="ID Number"><textarea id="kycAddress" placeholder="Address"></textarea><button type="button" id="submitKycAction" class="btn-wallet" style="background:#0f2b3d;">Submit verification</button></form></div></div>
   </main>
 </div>
 
-<!-- Modals -->
-<div id="addFundsModal" class="modal">
-  <div class="modal-content"><div class="modal-header"><h3>Add Funds</h3><span class="close-modal">&times;</span></div>
-    <div class="form-group"><label>Amount ($)</label><input type="number" id="fundAmount" placeholder="Enter amount" /></div>
-    <div class="modal-actions"><button class="btn-primary" id="confirmAddFunds">Add Funds</button><button class="btn-secondary close-modal">Cancel</button></div>
-  </div>
-</div>
+<!-- MODALS -->
+<div id="addFundsModal" class="modal"><div class="modal-card"><h3>Add funds</h3><input type="number" id="fundAmountInput" placeholder="Amount USD" class="form-control"><div style="margin-top:1rem;"><button id="confirmFundsBtn" class="btn-wallet">Deposit</button><button class="close-modal">Cancel</button></div></div></div>
+<div id="sendMoneyModal" class="modal"><div class="modal-card"><h3>Send to user</h3><input type="email" id="sendEmail" placeholder="recipient@email.com"><input type="number" id="sendAmountVal" placeholder="Amount"><button id="confirmSendBtn">Send</button><button class="close-modal">Close</button></div></div>
+<div id="reviewModal" class="modal"><div class="modal-card"><h3>✍️ Leave review</h3><input type="text" id="reviewProductId" hidden><p id="reviewProductName"></p><select id="reviewRating"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select><textarea id="reviewComment" placeholder="Fast delivery? Trustworthy experience?"></textarea><button id="submitReviewBtn">Submit review</button><button class="close-modal">Cancel</button></div></div>
 
-<div id="withdrawModal" class="modal">
-  <div class="modal-content"><div class="modal-header"><h3>Withdraw Funds</h3><span class="close-modal">&times;</span></div>
-    <div class="form-group"><label>Amount ($)</label><input type="number" id="withdrawAmount" placeholder="Enter amount" /></div>
-    <div class="modal-actions"><button class="btn-primary" id="confirmWithdraw">Withdraw</button><button class="btn-secondary close-modal">Cancel</button></div>
-  </div>
-</div>
-
-<div id="sendMoneyModal" class="modal">
-  <div class="modal-content"><div class="modal-header"><h3>Send Money</h3><span class="close-modal">&times;</span></div>
-    <div class="form-group"><label>Recipient Email</label><input type="email" id="recipientEmail" placeholder="user@example.com" /></div>
-    <div class="form-group"><label>Amount ($)</label><input type="number" id="sendAmount" placeholder="Enter amount" /></div>
-    <div class="form-group"><label>Note (Optional)</label><input type="text" id="sendNote" placeholder="Add a note" /></div>
-    <div class="modal-actions"><button class="btn-primary" id="confirmSend">Send Money</button><button class="btn-secondary close-modal">Cancel</button></div>
-  </div>
-</div>
-
-<div id="addProductModal" class="modal">
-  <div class="modal-content"><div class="modal-header"><h3>Add Product</h3><span class="close-modal">&times;</span></div>
-    <div class="form-group"><label>Product Name</label><input type="text" id="productName" /></div>
-    <div class="form-group"><label>Price ($)</label><input type="number" id="productPrice" /></div>
-    <div class="form-group"><label>Stock</label><input type="number" id="productStock" /></div>
-    <div class="form-group"><label>Category</label><select id="productCategory"><option>electronics</option><option>fashion</option><option>home</option></select></div>
-    <div class="modal-actions"><button class="btn-primary" id="confirmAddProduct">Add Product</button><button class="btn-secondary close-modal">Cancel</button></div>
-  </div>
-</div>
-
-<div id="toast" class="toast"></div>
+<div id="toastMsg" class="toast"></div>
 
 <script>
-  const API_BASE = "http://localhost:6030";
-  let currentUser = null;
-  let authToken = localStorage.getItem('auth_token');
+  // ---------- MOCK DATA but full dashboard with store logic, reviews, trust ratings ----------
+  let currentUser = JSON.parse(localStorage.getItem('nearbuy_user')) || {
+    id: "user_1",
+    name: "Alex Rivera",
+    email: "alex@nearbuy.com",
+    role: "buyer",       // buyer or seller
+    kycVerified: false,
+    wallet: 1250.75,
+    sellerProfile: null,
+    storeProducts: [],
+    avgSellerRating: 0,
+    totalSalesValue: 0
+  };
+  let allProducts = JSON.parse(localStorage.getItem('global_products')) || [
+    { id: "p1", sellerId: "store_elite", sellerName: "EliteGear", name: "Wireless Headphones X1", price: 89.99, stock: 12, ratingSum: 45, ratingCount: 10, reviews: [{user:"mike", rating:5, comment:"blazing fast shipping!"},{user:"sarah",rating:4,comment:"great quality"}] },
+    { id: "p2", sellerId: "store_zen", sellerName: "ZenStore", name: "Minimalist Backpack", price: 49.99, stock: 8, ratingSum: 28, ratingCount: 7, reviews: [{user:"jake",rating:5,comment:"super fast delivery"}] },
+    { id: "p3", sellerId: "store_elite", sellerName: "EliteGear", name: "Mechanical Keyboard", price: 129.99, stock: 5, ratingSum: 12, ratingCount: 3, reviews: [] }
+  ];
+  let orders = JSON.parse(localStorage.getItem('user_orders')) || [
+    { id:"ord1", orderNumber: "NB-1001", total: 89.99, status: "completed", createdAt: new Date().toISOString(), items: [{productId:"p1", product_name:"Wireless Headphones X1", quantity:1, price:89.99}], sellerId:"store_elite", sellerName:"EliteGear" }
+  ];
+  let transactions = JSON.parse(localStorage.getItem('user_txs')) || [
+    { id:"tx1", type:"debit", amount:89.99, description:"Purchase Headphones", createdAt: new Date().toISOString() },
+    { id:"tx2", type:"credit", amount:200, description:"Added funds", createdAt: new Date().toISOString() }
+  ];
 
-  // Helper Functions
-  function showToast(message, type = 'success') {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    toast.style.background = type === 'success' ? '#10b981' : '#ef4444';
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
+  function saveAll() {
+    localStorage.setItem('nearbuy_user', JSON.stringify(currentUser));
+    localStorage.setItem('global_products', JSON.stringify(allProducts));
+    localStorage.setItem('user_orders', JSON.stringify(orders));
+    localStorage.setItem('user_txs', JSON.stringify(transactions));
   }
 
-  function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+  function showToast(msg, isError=false) {
+    let toast = document.getElementById('toastMsg');
+    toast.innerText = msg;
+    toast.style.backgroundColor = isError ? "#e74c3c" : "#0f2b3d";
+    toast.style.opacity = "1";
+    setTimeout(() => toast.style.opacity = "0", 2800);
   }
 
-  async function apiCall(endpoint, options = {}) {
-    const response = await fetch(`${API_BASE}/api/shatova/v1/dashboard/${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`,
-        ...options.headers
-      }
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.message || 'Request failed');
-    return data;
-  }
-
-  // Load Dashboard Data
-  async function loadDashboard() {
-    try {
-      const data = await apiCall('stats');
-      currentUser = data.data.user;
-      
-      // Update UI
-      document.getElementById('userName').textContent = currentUser.name;
-      document.getElementById('userAvatar').textContent = currentUser.name.split(' ').map(n => n[0]).join('');
-      document.getElementById('userRole').textContent = currentUser.role 
-      
-      document.getElementById('walletBalance').textContent = formatCurrency(currentUser.walletBalance);
-      document.getElementById('walletBalancePage').textContent = formatCurrency(currentUser.walletBalance);
-      
-      document.getElementById('totalOrders').textContent = data.data.stats.totalOrders;
-      document.getElementById('totalSpent').textContent = formatCurrency(data.data.stats.totalSpent);
-      document.getElementById('pendingOrders').textContent = data.data.stats.pendingOrders;
-      document.getElementById('completedOrders').textContent = data.data.stats.completedOrders;
-      
-      // Recent orders
-      const recentOrdersHtml = data.data.recentOrders.map(order => `
-        <tr><td>${order.order_number}</td><td>${formatCurrency(order.total_amount)}</td>
-        <td><span class="status-badge status-${order.status}">${order.status}</span></td>
-        <td>${new Date(order.created_at).toLocaleDateString()}</td></tr>
-      `).join('');
-      document.getElementById('recentOrdersList').innerHTML = recentOrdersHtml || '<tr><td colspan="4">No orders found</td></tr>';
-      
-      // Load orders, transactions, etc.
-      await loadOrders();
-      await loadTransactions();
-      await loadSellerData();
-      
-    } catch (error) {
-      console.error('Load dashboard error:', error);
-      if (error.message.includes('token')) {
-        window.location.href = 'login.html';
-      }
+  function updateUI() {
+    document.getElementById('globalName').innerText = currentUser.name;
+    document.getElementById('globalAvatar').innerHTML = currentUser.name[0].toUpperCase();
+    document.getElementById('globalRole').innerHTML = currentUser.role === 'seller' ? '🏪 Store Owner' : '🛒 Buyer';
+    document.getElementById('walletMainBalance').innerText = `$${currentUser.wallet.toFixed(2)}`;
+    document.getElementById('walletPageBalance').innerText = `$${currentUser.wallet.toFixed(2)}`;
+    let userOrders = orders.filter(o => o.userId === currentUser.id || (!o.userId && currentUser.role==="buyer"));
+    if(currentUser.role !== "seller") userOrders = orders; // legacy compat
+    const spent = userOrders.reduce((s,o) => s+o.total,0);
+    document.getElementById('statOrders').innerText = userOrders.length;
+    document.getElementById('statSpent').innerHTML = `$${spent.toFixed(2)}`;
+    document.getElementById('statPending').innerText = userOrders.filter(o=>o.status==='pending').length;
+    // average trust rating for seller avg
+    if(currentUser.role === 'seller') {
+      let sellerProducts = allProducts.filter(p => p.sellerId === currentUser.id);
+      let totalStars = sellerProducts.reduce((sum,p)=> sum + (p.ratingSum||0),0);
+      let totalCounts = sellerProducts.reduce((sum,p)=> sum + (p.ratingCount||0),0);
+      let avg = totalCounts ? (totalStars/totalCounts) : 0;
+      document.getElementById('avgRating').innerHTML = avg.toFixed(1);
+    } else {
+      document.getElementById('avgRating').innerHTML = '⭐ 4.8';
     }
+    renderMarketplace();
+    renderOrders();
+    renderTransactions();
+    renderStoreOwnerPanel();
+    renderTopProductsPreview();
   }
 
-  async function loadOrders(filter = 'all') {
-    try {
-      const url = filter !== 'all' ? `orders?status=${filter}` : 'orders';
-      const data = await apiCall(url);
-      const ordersHtml = data.data.map(order => `
-        <div class="order-card" style="border:1px solid #e2e8f0; border-radius:0.75rem; padding:1rem; margin-bottom:1rem;">
-          <div class="order-header" style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
-            <strong>Order #${order.order_number}</strong>
-            <span class="status-badge status-${order.status}">${order.status}</span>
-          </div>
-          <div class="order-products" style="margin:0.5rem 0">
-            ${order.items.map(item => `<div style="display:flex; justify-content:space-between;"><span>${item.product_name} x ${item.quantity}</span><span>${formatCurrency(item.price * item.quantity)}</span></div>`).join('')}
-          </div>
-          <div class="order-footer" style="display:flex; justify-content:space-between; margin-top:0.5rem;">
-            <strong>Total: ${formatCurrency(order.total_amount)}</strong>
-            <span>${new Date(order.created_at).toLocaleDateString()}</span>
-          </div>
-        </div>
-      `).join('');
-      document.getElementById('ordersList').innerHTML = ordersHtml || '<div class="empty-state">No orders found</div>';
-    } catch (error) {
-      console.error('Load orders error:', error);
-    }
+  function renderMarketplace() {
+    const container = document.getElementById('marketplaceProducts');
+    if(!container) return;
+    container.innerHTML = allProducts.map(p => `
+      <div class="product-tile">
+        <h3>${p.name}</h3><div class="review-star">${'⭐'.repeat(Math.floor((p.ratingSum/(p.ratingCount||1)||0)))} (${p.ratingCount||0})</div>
+        <div class="flex-between"><span class="fw-bold">$${p.price}</span><span>⚡ by ${p.sellerName}</span></div>
+        <p class="comment-section"><i class="fas fa-tachometer-alt"></i> Trust index: ${p.ratingCount ? (p.ratingSum/p.ratingCount).toFixed(1) : 'new'} ⭐</p>
+        <button class="btn-wallet" style="background:#2c7da0; color:white; margin-top:0.5rem;" onclick="buyProduct('${p.id}', '${p.name}', ${p.price})">Buy now</button>
+        <button class="btn-wallet" style="background:#f39c12; margin-top:0.5rem;" onclick="openReviewModal('${p.id}', '${p.name}')">📝 Leave review</button>
+        ${p.reviews ? `<div class="comment-section"><small>🔥 Latest: ${p.reviews.slice(-1)[0]?.comment || 'Be first to review'}</small></div>` : ''}
+      </div>
+    `).join('');
   }
 
-  async function loadTransactions(filter = 'all') {
-    try {
-      const url = filter !== 'all' ? `transactions?type=${filter}` : 'transactions';
-      const data = await apiCall(url);
-      const transactionsHtml = data.data.map(tx => `
-        <div class="transaction-item">
-          <div class="transaction-left">
-            <div class="transaction-icon ${tx.type}"><i class="fas ${tx.type === 'credit' ? 'fa-arrow-down' : 'fa-arrow-up'}"></i></div>
-            <div class="transaction-details"><h4>${tx.description}</h4><p>${new Date(tx.created_at).toLocaleDateString()}</p></div>
-          </div>
-          <div class="transaction-amount ${tx.type}">${tx.type === 'credit' ? '+' : '-'} ${formatCurrency(tx.amount)}</div>
-        </div>
-      `).join('');
-      document.getElementById('transactionsList').innerHTML = transactionsHtml || '<div class="empty-state">No transactions found</div>';
-    } catch (error) {
-      console.error('Load transactions error:', error);
-    }
-  }
-
-  async function loadSellerData() {
-    if (currentUser?.role === 'seller') {
-      try {
-        const products = await apiCall('products');
-        document.getElementById('totalProducts').textContent = products.data.length;
-        document.getElementById('activeListings').textContent = products.data.filter(p => p.status === 'active').length;
-        document.getElementById('sellerStats').style.display = 'grid';
-        document.getElementById('addProductBtn').style.display = 'block';
-        
-        const productsHtml = products.data.map(p => `
-          <div class="product-card"><h4>${p.name}</h4><div class="product-price">${formatCurrency(p.price)}</div><div class="product-stock">Stock: ${p.stock}</div></div>
-        `).join('');
-        document.getElementById('productsList').innerHTML = productsHtml;
-      } catch (error) {
-        console.error('Load products error:', error);
+  function buyProduct(productId, pName, price) {
+    if(currentUser.wallet < price) { showToast("Insufficient funds, add money first", true); return; }
+    currentUser.wallet -= price;
+    const newOrder = { id: Date.now().toString(), orderNumber: `NB-${Math.floor(Math.random()*10000)}`, total: price, status: "processing", createdAt: new Date().toISOString(), items: [{productId, product_name:pName, quantity:1, price}], userId: currentUser.id, sellerId: allProducts.find(p=>p.id===productId).sellerId };
+    orders.unshift(newOrder);
+    transactions.push({ id:`tx_${Date.now()}`, type:"debit", amount:price, description:`Purchase: ${pName}`, createdAt: new Date().toISOString() });
+    // add seller sales record
+    let sellerProd = allProducts.find(p=>p.id===productId);
+    if(sellerProd) { 
+      let targetSeller = (currentUser.role === 'seller' && sellerProd.sellerId === currentUser.id) ? currentUser : null;
+      if(sellerProd.sellerId !== currentUser.id) {
+        // update global seller stats
+        let storeOwner = null;
       }
     }
+    saveAll();
+    updateUI();
+    showToast(`✅ Purchased ${pName}! Order placed.`);
   }
 
-  // Wallet Actions
-  async function addFunds(amount) {
-    try {
-      await apiCall('wallet/add-funds', { method: 'POST', body: JSON.stringify({ amount, paymentMethod: 'card' }) });
-      showToast(`$${amount} added successfully!`);
-      loadDashboard();
-    } catch (error) {
-      showToast(error.message, 'error');
+  async function submitReview(productId, rating, comment) {
+    const prod = allProducts.find(p=>p.id === productId);
+    if(prod) {
+      prod.ratingSum = (prod.ratingSum||0) + Number(rating);
+      prod.ratingCount = (prod.ratingCount||0) + 1;
+      if(!prod.reviews) prod.reviews = [];
+      prod.reviews.unshift({ user: currentUser.name, rating, comment, date: new Date().toISOString() });
+      saveAll();
+      updateUI();
+      showToast(`⭐ Review added! Helps build trust.`);
+    } else showToast("Product error", true);
+  }
+
+  function renderOrders() {
+    let container = document.getElementById('ordersContainer');
+    if(!container) return;
+    const userOrders = orders.filter(o => o.userId === currentUser.id);
+    if(userOrders.length===0) { container.innerHTML = "<div class='empty-state'>No orders yet</div>"; return; }
+    container.innerHTML = userOrders.map(o => `<div class="neo-card" style="margin-bottom:1rem;"><div class="flex-between"><b>${o.orderNumber}</b><span class="badge-status" style="background:#fed7aa;">${o.status}</span></div><div>Items: ${o.items.map(i=>i.product_name).join(', ')}</div><div>Total: $${o.total}</div><div>${new Date(o.createdAt).toLocaleDateString()}</div></div>`).join('');
+  }
+
+  function renderTransactions() {
+    let container = document.getElementById('transactionList');
+    if(!container) return;
+    if(transactions.length===0) { container.innerHTML = "<div>No transactions</div>"; return; }
+    container.innerHTML = transactions.slice(0,10).map(t => `<div class="flex-between border-bottom p-2"><span><i class="fas ${t.type==='credit'?'fa-arrow-up text-success':'fa-arrow-down text-danger'}"></i> ${t.description}</span><span class="${t.type==='credit'?'text-success':'text-danger'}">${t.type==='credit'?'+':'-'}$${t.amount}</span></div>`).join('');
+  }
+
+  function renderStoreOwnerPanel() {
+    const isSeller = currentUser.role === 'seller';
+    const sellerActive = isSeller && currentUser.kycVerified;
+    document.getElementById('sellerNotActiveMsg').style.display = (!isSeller || !currentUser.kycVerified) ? 'block' : 'none';
+    document.getElementById('sellerStatsArea').style.display = (sellerActive) ? 'grid' : 'none';
+    document.getElementById('addProductBtnStore').style.display = sellerActive ? 'block' : 'none';
+    document.getElementById('becomeSellerBtnGlobal').style.display = (!isSeller) ? 'block' : 'none';
+    if(sellerActive && currentUser.kycVerified) {
+      let myProds = allProducts.filter(p => p.sellerId === currentUser.id);
+      document.getElementById('sellerProductCount').innerText = myProds.length;
+      let totalSalesVal = orders.filter(o => myProds.some(p => o.items.some(it=>it.productId === p.id))).reduce((sum,o)=>sum+o.total,0);
+      document.getElementById('sellerTotalSales').innerHTML = `$${totalSalesVal}`;
+      let ratingAvg = myProds.reduce((acc,p)=> acc + ((p.ratingSum||0)/(p.ratingCount||1 ||1)),0) / (myProds.length||1);
+      document.getElementById('sellerAvgRate').innerHTML = ratingAvg.toFixed(1);
+      document.getElementById('sellerProductsGrid').innerHTML = myProds.map(p => `<div class="product-tile"><b>${p.name}</b> $${p.price}<br>⭐ ${((p.ratingSum||0)/(p.ratingCount||1)).toFixed(1)} (${p.ratingCount||0} reviews)<br><button class="btn-wallet" onclick="deleteProduct('${p.id}')">Delete</button></div>`).join('');
+    } else {
+      document.getElementById('sellerProductsGrid').innerHTML = '';
     }
   }
 
-  async function withdrawFunds(amount) {
-    try {
-      await apiCall('wallet/withdraw', { method: 'POST', body: JSON.stringify({ amount, bankDetails: {} }) });
-      showToast(`Withdrawal request submitted!`);
-      loadDashboard();
-    } catch (error) {
-      showToast(error.message, 'error');
+  function deleteProduct(pid) {
+    allProducts = allProducts.filter(p => p.id !== pid);
+    saveAll();
+    updateUI();
+    showToast("Product removed");
+  }
+
+  function addProduct() { 
+    if(currentUser.role !== 'seller' || !currentUser.kycVerified) { showToast("Complete KYC and become seller first", true); return; }
+    let name = prompt("Product name");
+    let price = parseFloat(prompt("Price USD"));
+    if(name && price) {
+      let newProd = { id: "p"+Date.now(), sellerId: currentUser.id, sellerName: currentUser.name, name, price, stock: 99, ratingSum:0, ratingCount:0, reviews:[] };
+      allProducts.push(newProd);
+      saveAll();
+      updateUI();
+      showToast(`✨ ${name} added to your store!`);
     }
   }
 
-  async function sendMoney(recipientEmail, amount, note) {
-    try {
-      await apiCall('wallet/send', { method: 'POST', body: JSON.stringify({ recipientEmail, amount, note }) });
-      showToast(`$${amount} sent to ${recipientEmail}!`);
-      loadDashboard();
-    } catch (error) {
-      showToast(error.message, 'error');
-    }
+  function becomeSeller() {
+    if(!currentUser.kycVerified) { showToast("Please complete KYC verification first", true); return; }
+    currentUser.role = 'seller';
+    if(!currentUser.sellerProfile) currentUser.sellerProfile = { storeName: currentUser.name+"'s shop" };
+    saveAll();
+    updateUI();
+    showToast("🎉 Congratulations! You are now a store owner.");
   }
 
-  // Navigation
-  function switchPage(pageId) {
-    document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-    document.getElementById(`${pageId}Page`).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-    document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
-    
-    const titles = { overview: 'Dashboard Overview', orders: 'My Orders', wallet: 'Wallet', transactions: 'Transactions', sell: 'Sell Center', kyc: 'KYC Verification', settings: 'Settings' };
-    document.getElementById('pageTitle').textContent = titles[pageId];
-    
-    if (pageId === 'overview') loadDashboard();
-    if (pageId === 'orders') loadOrders();
-    if (pageId === 'transactions') loadTransactions();
+  function openDynamicModal(id) { document.getElementById(id).classList.add('active'); }
+  function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+  function openReviewModal(prodId, prodName) {
+    document.getElementById('reviewProductId').value = prodId;
+    document.getElementById('reviewProductName').innerText = prodName;
+    document.getElementById('reviewModal').classList.add('active');
+  }
+  function submitKyc() {
+    let name = document.getElementById('kycName').value;
+    let idnum = document.getElementById('kycId').value;
+    if(name && idnum) {
+      currentUser.kycVerified = true;
+      saveAll();
+      document.getElementById('kycFill').style.width = '100%';
+      document.getElementById('kycStatusMsg').innerText = '✅ Verified';
+      showToast("KYC approved! Now you can become a seller.");
+      updateUI();
+    } else showToast("Fill all fields", true);
   }
 
-  // Modal Functions
-  function openModal(modalId) {
-    document.getElementById(modalId).classList.add('active');
+  async function addFunds(amount) { if(amount>0) { currentUser.wallet += amount; transactions.unshift({ id:"tx"+Date.now(), type:"credit", amount, description:"Manual deposit", createdAt: new Date().toISOString() }); saveAll(); updateUI(); showToast(`$${amount} added`); } }
+  async function sendMoney(email, amount) { if(amount>0 && amount<=currentUser.wallet) { currentUser.wallet -= amount; transactions.unshift({ id:"tx"+Date.now(), type:"debit", amount, description:`Sent to ${email}`, createdAt: new Date().toISOString() }); saveAll(); updateUI(); showToast(`$${amount} sent to ${email}`); } else showToast("Invalid amount or balance", true); }
+
+  function renderTopProductsPreview() {
+    let sorted = [...allProducts].sort((a,b)=> ((b.ratingSum||0)/(b.ratingCount||1||1)) - ((a.ratingSum||0)/(a.ratingCount||1||1))).slice(0,3);
+    document.getElementById('topProductsPreview').innerHTML = sorted.map(p=> `<div class="product-tile"><b>${p.name}</b> ⭐ ${((p.ratingSum||0)/(p.ratingCount||1)).toFixed(1)}<br>by ${p.sellerName}<br><span class="text-xs">⚡ trust badge</span></div>`).join('');
   }
 
-  // Event Listeners
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => switchPage(item.dataset.page));
-  });
-  
-  document.querySelectorAll('.view-all-btn').forEach(btn => {
-    btn.addEventListener('click', () => switchPage(btn.dataset.page));
-  });
-  
-  document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('mobile-open');
-  });
-  
-  document.getElementById('logoutBtn')?.addEventListener('click', () => {
-    localStorage.removeItem('auth_token');
-    window.location.href = 'login.html';
-  });
-  
-  // Modal Buttons
-  document.getElementById('confirmAddFunds')?.addEventListener('click', () => {
-    const amount = parseFloat(document.getElementById('fundAmount').value);
-    if (amount > 0) addFunds(amount);
-    document.getElementById('addFundsModal').classList.remove('active');
-  });
-  
-  document.getElementById('confirmWithdraw')?.addEventListener('click', () => {
-    const amount = parseFloat(document.getElementById('withdrawAmount').value);
-    if (amount > 0) withdrawFunds(amount);
-    document.getElementById('withdrawModal').classList.remove('active');
-  });
-  
-  document.getElementById('confirmSend')?.addEventListener('click', () => {
-    const email = document.getElementById('recipientEmail').value;
-    const amount = parseFloat(document.getElementById('sendAmount').value);
-    const note = document.getElementById('sendNote').value;
-    if (email && amount > 0) sendMoney(email, amount, note);
-    document.getElementById('sendMoneyModal').classList.remove('active');
-  });
-  
-  // Close modals
-  document.querySelectorAll('.close-modal').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.modal').forEach(modal => modal.classList.remove('active'));
-    });
-  });
-  
-  // Filters
-  document.querySelectorAll('[data-filter]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.order-filters .filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      loadOrders(btn.dataset.filter);
-    });
-  });
-  
-  document.querySelectorAll('[data-tx-filter]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.transaction-filters .filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      loadTransactions(btn.dataset.txFilter);
-    });
-  });
-  
-  // Check authentication
-  if (!authToken) {
-    window.location.href = 'login.html';
-  } else {
-    loadDashboard();
-  }
+  // event binding
+  window.openDynamicModal = openDynamicModal;
+  window.buyProduct = buyProduct;
+  window.openReviewModal = openReviewModal;
+  window.deleteProduct = deleteProduct;
+  document.getElementById('confirmFundsBtn')?.addEventListener('click',()=>{ let amt=parseFloat(document.getElementById('fundAmountInput').value); if(amt) addFunds(amt); closeModals(); });
+  document.getElementById('confirmSendBtn')?.addEventListener('click',()=>{ let amt=parseFloat(document.getElementById('sendAmountVal').value); let email=document.getElementById('sendEmail').value; if(amt && email) sendMoney(email, amt); closeModals(); });
+  document.getElementById('submitReviewBtn')?.addEventListener('click',()=>{ let pid=document.getElementById('reviewProductId').value; let rating=parseInt(document.getElementById('reviewRating').value); let comment=document.getElementById('reviewComment').value; submitReview(pid, rating, comment); closeModals(); });
+  document.getElementById('submitKycAction')?.addEventListener('click',submitKyc);
+  document.getElementById('becomeSellerBtnGlobal')?.addEventListener('click',becomeSeller);
+  document.getElementById('addProductBtnStore')?.addEventListener('click',addProduct);
+  document.querySelectorAll('.close-modal').forEach(btn=> btn.addEventListener('click',closeModals));
+  document.querySelectorAll('.nav-item').forEach(nav=>{ nav.addEventListener('click',()=>{ let page=nav.dataset.page; document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(`${page}Page`).classList.add('active'); document.getElementById('dynamicTitle').innerText = page==='overview'?'✨ Dashboard': page==='market'?'🛒 Marketplace': page==='myStore'?'🏪 My Store': page==='wallet'?'💸 Wallet': page==='orders'?'📦 Orders':'⚙️'; document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); nav.classList.add('active'); }); });
+  document.getElementById('logoutBtn')?.addEventListener('click',()=>{ localStorage.clear(); location.reload(); });
+  document.getElementById('mobileMenuBtn')?.addEventListener('click',()=>document.getElementById('sidebar').classList.toggle('mobile-open'));
+  if(currentUser.kycVerified) document.getElementById('kycFill').style.width='100%';
+  updateUI();
 </script>
 </body>
 </html>
