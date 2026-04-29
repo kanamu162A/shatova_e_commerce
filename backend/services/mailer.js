@@ -1,95 +1,100 @@
-// services/mailer.js - Complete working version
+// services/mailer.js - Fixed version with better error handling
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
-// Load environment variables
 dotenv.config();
 
-// Get email config from environment
+// Get email configuration
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
 const EMAIL_PORT = process.env.EMAIL_PORT || 587;
 
-// Create transporter if credentials exist
+console.log('📧 Email Configuration:');
+console.log(`  Host: ${EMAIL_HOST}`);
+console.log(`  Port: ${EMAIL_PORT}`);
+console.log(`  User: ${EMAIL_USER ? EMAIL_USER : '❌ NOT SET'}`);
+console.log(`  Pass: ${EMAIL_PASS ? '✅ SET' : '❌ NOT SET'}`);
+
+// Create transporter
 let transporter = null;
 
 if (EMAIL_USER && EMAIL_PASS) {
-  transporter = nodemailer.createTransport({
-    host: EMAIL_HOST,
-    port: parseInt(EMAIL_PORT),
-    secure: EMAIL_PORT === '465',
-    auth: {
-      user: EMAIL_USER,
-      pass: EMAIL_PASS,
-    },
-  });
-  
-  // Verify connection
-  transporter.verify((error, success) => {
-    if (error) {
-      console.error('❌ Email configuration error:', error.message);
-    } else {
-      console.log('✅ Email service ready');
-    }
-  });
+  try {
+    transporter = nodemailer.createTransport({
+      host: EMAIL_HOST,
+      port: parseInt(EMAIL_PORT),
+      secure: EMAIL_PORT === '465',
+      auth: {
+        user: EMAIL_USER,
+        pass: EMAIL_PASS,
+      },
+      // Add timeout and debug options
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
+    });
+    
+    // Verify connection
+    transporter.verify((error, success) => {
+      if (error) {
+        console.error('❌ Email transporter verification failed:', error.message);
+      } else {
+        console.log('✅ Email transporter ready');
+      }
+    });
+  } catch (error) {
+    console.error('❌ Failed to create email transporter:', error.message);
+  }
 } else {
-  console.warn('⚠️ Email credentials missing. Set EMAIL_USER and EMAIL_PASS');
+  console.warn('⚠️ Email credentials missing. Set EMAIL_USER and EMAIL_PASS in .env');
 }
 
-// Simple fallback email template (in case EmailTemplateBuilder fails)
-const fallbackEmailTemplate = ({ name, otp, purpose, expiryMinutes }) => {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>${purpose === 'login' ? 'Login Verification' : 'Password Reset'}</title>
-      <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; }
-        .header { background: #0F172A; color: white; padding: 30px; text-align: center; }
-        .otp { font-size: 48px; font-family: monospace; letter-spacing: 10px; background: #f0f0f0; padding: 20px; margin: 20px; text-align: center; font-weight: bold; }
-        .content { padding: 30px; text-align: center; }
-        .footer { background: #f9f9f9; padding: 15px; text-align: center; font-size: 12px; color: #666; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>🛍️ NearBuy</h1>
-          <p>${purpose === 'login' ? 'Login Verification' : 'Password Reset'}</p>
-        </div>
-        <div class="content">
-          <h2>Hello ${name}!</h2>
-          <p>Your verification code is:</p>
-          <div class="otp">${otp}</div>
-          <p>This code expires in <strong>${expiryMinutes} minutes</strong>.</p>
-          <p>If you didn't request this, please ignore this email.</p>
-        </div>
-        <div class="footer">
-          <p>© 2025 NearBuy - Safe buying & selling platform</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-};
+// Simple email template
+const simpleEmailTemplate = (name, otp, expiryMinutes) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Verification Code</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
+    .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .header { background: #0F172A; color: white; padding: 30px; text-align: center; }
+    .header h1 { margin: 0; font-size: 24px; }
+    .content { padding: 40px 30px; text-align: center; }
+    .otp { font-size: 48px; font-family: monospace; letter-spacing: 10px; background: #f0f0f0; padding: 20px; margin: 20px 0; border-radius: 8px; font-weight: bold; }
+    .footer { background: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🛍️ NearBuy</h1>
+    </div>
+    <div class="content">
+      <h2>Hello ${name}!</h2>
+      <p>Your verification code is:</p>
+      <div class="otp">${otp}</div>
+      <p>This code expires in <strong>${expiryMinutes} minutes</strong>.</p>
+      <p>If you didn't request this, please ignore this email.</p>
+    </div>
+    <div class="footer">
+      <p>© 2025 NearBuy - Safe buying & selling platform</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
 
-// Main sendMail function
 export const sendMail = async ({ to, subject, html, text }) => {
-  // Always log email attempts
-  console.log(`\n📧 ========== EMAIL ATTEMPT ==========`);
-  console.log(`To: ${to}`);
+  console.log(`\n📧 Attempting to send email to: ${to}`);
   console.log(`Subject: ${subject}`);
-  console.log(`Time: ${new Date().toISOString()}`);
-  console.log(`=====================================\n`);
-
-  // If no transporter, just log and return success (for testing)
+  
   if (!transporter) {
-    console.log(`⚠️ No email transporter configured. Email not sent.`);
-    console.log(`💡 To send real emails, set EMAIL_USER and EMAIL_PASS in environment.`);
-    return { success: true, message: "Email logged (no transporter)" };
+    console.error('❌ No email transporter available. Email not sent.');
+    console.log('💡 Please check your EMAIL_USER and EMAIL_PASS environment variables.');
+    return { success: false, error: 'No email transporter configured' };
   }
 
   try {
@@ -97,36 +102,19 @@ export const sendMail = async ({ to, subject, html, text }) => {
       from: `"NearBuy" <${EMAIL_USER}>`,
       to,
       subject,
-      text: text || html?.replace(/<[^>]*>/g, '') || 'Verification code',
-      html: html || text,
+      text: text || html?.replace(/<[^>]*>/g, '') || 'Your verification code',
+      html: html || simpleEmailTemplate('User', '000000', 5),
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`✅ Email sent successfully to ${to}`);
-    console.log(`📨 Message ID: ${info.messageId}`);
+    console.log(`✅ Email sent successfully! Message ID: ${info.messageId}`);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error(`❌ Failed to send email to ${to}:`, error.message);
+    console.error(`❌ Failed to send email:`);
+    console.error(`   Error: ${error.message}`);
+    console.error(`   Code: ${error.code}`);
+    console.error(`   Command: ${error.command}`);
+    if (error.response) console.error(`   Response: ${error.response}`);
     return { success: false, error: error.message };
   }
-};
-
-// Helper function to send OTP emails (compatible with EmailTemplateBuilder)
-export const sendOTPEmail = async (email, name, otp, purpose = 'login') => {
-  const expiryMinutes = purpose === 'login' ? 5 : 10;
-  const subject = purpose === 'login' 
-    ? '🔐 Your Login Verification Code - NearBuy'
-    : '🔑 Password Reset OTP - NearBuy';
-  
-  // Try to use EmailTemplateBuilder if available, otherwise use fallback
-  let html;
-  try {
-    const EmailTemplateBuilder = (await import('./emailTemplates.js')).default;
-    html = EmailTemplateBuilder.otpEmail(name, otp, expiryMinutes, purpose);
-  } catch (error) {
-    console.log('Using fallback email template');
-    html = fallbackEmailTemplate({ name, otp, purpose, expiryMinutes });
-  }
-  
-  return await sendMail({ to: email, subject, html });
 };
