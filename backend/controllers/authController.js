@@ -5,9 +5,9 @@ import EmailTemplateBuilder from "../services/emailTemplates.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 
-// INCREASE OTP EXPIRY for better user experience
-const OTP_EXPIRY_MINUTES = 5;  // Changed from 1 to 5 minutes
-const RESET_TOKEN_EXPIRY_MINUTES = 10;  // 10 minutes for reset
+// OTP expiry settings
+const OTP_EXPIRY_MINUTES = 5;
+const RESET_TOKEN_EXPIRY_MINUTES = 10;
 
 const generateOTP = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
@@ -32,7 +32,6 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({
@@ -41,7 +40,6 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // Validate phone number
     const phoneRegex = /^[0-9]{10,15}$/;
     if (!phoneRegex.test(phone.replace(/[\s\-\(\)\+]/g, ''))) {
       return res.status(400).json({
@@ -50,7 +48,6 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // Validate password strength
     if (password.length < 8) {
       return res.status(400).json({
         success: false,
@@ -58,7 +55,6 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // Check if user exists
     const existing = await pool.query(
       "SELECT id, email, phone FROM users WHERE email = $1 OR phone = $2",
       [email, phone]
@@ -97,7 +93,6 @@ export const registerUser = async (req, res) => {
 
     const user = result.rows[0];
 
-    // Send welcome email (non-blocking)
     sendMail({
       to: email,
       subject: "🎉 Welcome to NearBuy - Let's Get Started!",
@@ -130,7 +125,7 @@ export const registerUser = async (req, res) => {
 };
 
 // ============================
-// LOGIN - SEND OTP (OPTIMIZED)
+// LOGIN - SEND OTP (UPDATED WITH OTP LOGGING)
 // ============================
 export const loginUser = async (req, res) => {
   const startTime = Date.now();
@@ -145,7 +140,6 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    // Quick user lookup with index
     const result = await pool.query(
       "SELECT id, email, name, password_hash FROM users WHERE email = $1",
       [email]
@@ -160,7 +154,6 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    // Password comparison
     const isMatch = await bcrypt.compare(password, user.password_hash);
 
     if (!isMatch) {
@@ -170,7 +163,6 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    // Clean up old OTPs first
     await pool.query(
       "DELETE FROM otp_codes WHERE user_id = $1 AND purpose = 'login' AND expires_at < NOW()",
       [user.id]
@@ -185,8 +177,15 @@ export const loginUser = async (req, res) => {
       [user.id, otp, "login", expires]
     );
 
-    // Send email asynchronously (don't await)
-    const emailPromise = sendMail({
+    // 🔐 IMPORTANT: Log OTP to console so you can see it in Render logs
+    console.log(`\n🔐 ========== LOGIN OTP ==========`);
+    console.log(`Email: ${user.email}`);
+    console.log(`OTP Code: ${otp}`);
+    console.log(`Expires in: ${OTP_EXPIRY_MINUTES} minutes`);
+    console.log(`=================================\n`);
+
+    // Send email (don't await - let it run in background)
+    sendMail({
       to: user.email,
       subject: "🔐 Your Login Verification Code - NearBuy",
       html: EmailTemplateBuilder.otpEmail(
@@ -195,13 +194,13 @@ export const loginUser = async (req, res) => {
         OTP_EXPIRY_MINUTES,
         "login"
       )
+    }).catch(emailError => {
+      console.error("Email sending failed but OTP is still valid:", emailError.message);
     });
 
-    // Calculate response time
     const elapsedTime = Date.now() - startTime;
     console.log(`Login processed in ${elapsedTime}ms for user: ${user.email}`);
 
-    // Return response immediately (email sends in background)
     return res.status(200).json({
       success: true,
       message: "OTP sent to your email",
@@ -223,7 +222,7 @@ export const loginUser = async (req, res) => {
 };
 
 // ============================
-// VERIFY OTP (OPTIMIZED)
+// VERIFY OTP
 // ============================
 export const verifyLoginOTP = async (req, res) => {
   const startTime = Date.now();
@@ -238,7 +237,6 @@ export const verifyLoginOTP = async (req, res) => {
       });
     }
 
-    // Single query to get user and verify OTP
     const result = await pool.query(
       `SELECT u.id, u.email, u.name, u.role, o.id as otp_id, o.expires_at
        FROM users u
@@ -261,10 +259,8 @@ export const verifyLoginOTP = async (req, res) => {
 
     const user = result.rows[0];
 
-    // Delete used OTP
     await pool.query("DELETE FROM otp_codes WHERE id = $1", [user.otp_id]);
 
-    // Generate JWT token
     const token = jwt.sign(
       { 
         userId: user.id, 
@@ -276,7 +272,6 @@ export const verifyLoginOTP = async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    // Send welcome back email (non-blocking)
     const device = req.headers['user-agent'] || "Unknown Device";
     const ip = req.ip || req.headers['x-forwarded-for'] || "Unable to detect";
     
@@ -294,8 +289,7 @@ export const verifyLoginOTP = async (req, res) => {
       console.error("Welcome back email failed:", emailError.message);
     });
 
-    const elapsedTime = Date.now() - startTime;
-    console.log(`OTP verified in ${elapsedTime}ms for user: ${user.email}`);
+    console.log(`✅ OTP verified in ${Date.now() - startTime}ms for user: ${user.email}`);
 
     return res.status(200).json({
       success: true,
@@ -319,7 +313,7 @@ export const verifyLoginOTP = async (req, res) => {
 };
 
 // ============================
-// RESEND OTP (OPTIMIZED)
+// RESEND OTP (UPDATED WITH LOGGING)
 // ============================
 export const resendOTP = async (req, res) => {
   try {
@@ -346,7 +340,6 @@ export const resendOTP = async (req, res) => {
 
     const user = userResult.rows[0];
 
-    // Delete old OTPs
     await pool.query(
       "DELETE FROM otp_codes WHERE user_id = $1 AND purpose = 'login'",
       [user.id]
@@ -360,6 +353,12 @@ export const resendOTP = async (req, res) => {
        VALUES ($1, $2, $3, $4, NOW())`,
       [user.id, otp, "login", expires]
     );
+
+    // Log resend OTP
+    console.log(`\n🔄 ========== RESEND OTP ==========`);
+    console.log(`Email: ${user.email}`);
+    console.log(`New OTP: ${otp}`);
+    console.log(`==================================\n`);
 
     await sendMail({
       to: user.email,
@@ -388,7 +387,7 @@ export const resendOTP = async (req, res) => {
 };
 
 // ============================
-// FORGOT PASSWORD - SEND OTP
+// FORGOT PASSWORD - SEND OTP (UPDATED WITH LOGGING)
 // ============================
 export const forgotPassword = async (req, res) => {
   try {
@@ -409,14 +408,12 @@ export const forgotPassword = async (req, res) => {
     const user = result.rows[0];
 
     if (!user) {
-      // Don't reveal that user doesn't exist for security
       return res.status(200).json({
         success: true,
         message: "If an account exists with this email, you will receive a password reset OTP"
       });
     }
 
-    // Delete old password reset entries
     await pool.query(
       "DELETE FROM password_resets WHERE user_id = $1",
       [user.id]
@@ -430,6 +427,13 @@ export const forgotPassword = async (req, res) => {
        VALUES ($1, $2, $3, NOW())`,
       [user.id, otp, expires]
     );
+
+    // Log reset OTP
+    console.log(`\n🔑 ========== PASSWORD RESET OTP ==========`);
+    console.log(`Email: ${user.email}`);
+    console.log(`Reset OTP: ${otp}`);
+    console.log(`Expires in: ${RESET_TOKEN_EXPIRY_MINUTES} minutes`);
+    console.log(`==========================================\n`);
 
     await sendMail({
       to: email,
@@ -472,7 +476,6 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Validate password strength
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({
@@ -481,7 +484,6 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    // Find valid OTP in password_resets table
     const otpResult = await pool.query(
       `SELECT pr.*, u.name, u.email 
        FROM password_resets pr
@@ -504,16 +506,15 @@ export const resetPassword = async (req, res) => {
     const record = otpResult.rows[0];
     const hashed = await bcrypt.hash(newPassword, 10);
 
-    // Update password
     await pool.query(
       "UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2",
       [hashed, userId]
     );
 
-    // Delete used OTP record
     await pool.query("DELETE FROM password_resets WHERE id = $1", [record.id]);
 
-    // Send password reset success email
+    console.log(`✅ Password reset successful for user: ${record.email}`);
+
     sendMail({
       to: record.email,
       subject: "✅ Password Reset Successful - NearBuy",
@@ -583,7 +584,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Validate new password strength
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(newPassword)) {
       return res.status(400).json({
@@ -620,7 +620,6 @@ export const changePassword = async (req, res) => {
       [hashed, userId]
     );
 
-    // Send security alert (non-blocking)
     sendMail({
       to: userResult.rows[0].email,
       subject: "🔐 Your Password Has Been Changed - NearBuy",
@@ -656,7 +655,6 @@ export const changePassword = async (req, res) => {
 // ============================
 export const healthCheck = async (req, res) => {
   try {
-    // Test database connection
     await pool.query('SELECT NOW()');
     
     res.status(200).json({
