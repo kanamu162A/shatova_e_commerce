@@ -1,38 +1,40 @@
-import nodemailer from "nodemailer";
-import config from "../config/env.js"; 
+// services/mailer.js - Simple version for testing
+import nodemailer from 'nodemailer';
 
-const transporter = nodemailer.createTransport({
-  host: config.email.host || 'smtp.gmail.com',
-  port: config.email.port || 587,
-  secure: false,
-  auth: {
-    user: "supportnearbuy.ng@gmail.com",
-    pass: "znfyruqaaokacpgw",
-  },
-});
+// For testing - just log emails to console
+const isDevelopment = process.env.NODE_ENV === 'development';
 
-export default transporter;
+export const sendMail = async ({ to, subject, html }) => {
+  // Always log to console for debugging
+  console.log(`\n📧 ========== EMAIL ==========`);
+  console.log(`To: ${to}`);
+  console.log(`Subject: ${subject}`);
+  console.log(`Content: ${html.replace(/<[^>]*>/g, '').substring(0, 200)}...`);
+  console.log(`==============================\n`);
 
-export const sendMail = async ({
-  to,
-  subject,
-  text,
-  html
-}) => {
-  try {
-    const info = await transporter.sendMail({
-      from: `"NearBuy Support" <${config.email.user}>`, 
-      to,
-      subject,
-      text,
-      html
-    });
-
-    console.log("Email sent:", info.messageId);
-
-    return info;
-  } catch (error) {
-    console.error("Mail Error:", error);
-    throw error;
+  // For development, don't actually send emails
+  if (isDevelopment) {
+    console.log(`🔧 Development mode - Email not actually sent`);
+    return { success: true, message: "Email logged to console" };
   }
+
+  // For production, configure real email
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  const info = await transporter.sendMail({
+    from: `"NearBuy" <${process.env.EMAIL_USER}>`,
+    to,
+    subject,
+    html,
+  });
+
+  return info;
 };
