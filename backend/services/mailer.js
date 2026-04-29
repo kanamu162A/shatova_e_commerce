@@ -1,159 +1,127 @@
-import transporter from "../config/mailer.js";
-import pool from "../config/db.js";
+// services/mailer.js - COMPLETE REPLACEMENT
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
 
-const OTP_EXPIRY = 30; // seconds
+// Load environment variables
+dotenv.config();
 
-// Reusable beautiful email template
-const emailTemplate = ({ title, heading, message }) => {
+// Email configuration from env
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
+const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
+const EMAIL_PORT = process.env.EMAIL_PORT || 587;
+
+// Create transporter
+let transporter = null;
+
+if (EMAIL_USER && EMAIL_PASS) {
+  transporter = nodemailer.createTransport({
+    host: EMAIL_HOST,
+    port: parseInt(EMAIL_PORT),
+    secure: EMAIL_PORT === '465',
+    auth: {
+      user: EMAIL_USER,
+      pass: EMAIL_PASS,
+    },
+  });
+  
+  // Verify connection
+  transporter.verify((error, success) => {
+    if (error) {
+      console.error('❌ Email transporter error:', error.message);
+    } else {
+      console.log('✅ Email service ready');
+    }
+  });
+} else {
+  console.warn('⚠️ Email credentials missing - emails will be logged to console');
+}
+
+// Simple email template
+const simpleEmailTemplate = ({ title, heading, message, otp = null }) => {
   return `
-    <div style="font-family: Arial, sans-serif; background:#f4f4f4; padding:30px;">
-      <div style="max-width:600px; margin:auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
-
-        <div style="background:#111827; color:white; padding:20px; text-align:center;">
-          <h1 style="margin:0;">NearBuy</h1>
-          <p style="margin:5px 0 0;">${title}</p>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${title}</title>
+      <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: #0F172A; color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .content { padding: 40px 30px; text-align: center; }
+        .otp-code { font-size: 48px; font-family: monospace; letter-spacing: 10px; background: #F3F4F6; padding: 20px; border-radius: 10px; margin: 20px 0; font-weight: bold; color: #0F172A; }
+        .button { background: #3B82F6; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; margin: 20px 0; }
+        .footer { background: #F9FAFB; padding: 20px; text-align: center; font-size: 12px; color: #6B7280; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🛍️ NearBuy</h1>
+          <p>${title}</p>
         </div>
-
-        <div style="padding:30px; color:#333;">
-          <h2 style="margin-top:0;">${heading}</h2>
-          <p style="line-height:1.7;">
-            ${message}
-          </p>
+        <div class="content">
+          <h2>${heading}</h2>
+          <p>${message}</p>
+          ${otp ? `<div class="otp-code">${otp}</div>` : ''}
+          <p style="color: #6B7280; font-size: 14px; margin-top: 30px;">This code expires in 5 minutes for security.</p>
         </div>
-
-        <div style="background:#f9fafb; padding:15px; text-align:center; font-size:12px; color:#777;">
-          © 2026 NearBuy • Safe buying & selling
+        <div class="footer">
+          <p>© 2026 NearBuy - Safe buying & selling platform</p>
+          <p>If you didn't request this, please ignore this email.</p>
         </div>
       </div>
-    </div>
+    </body>
+    </html>
   `;
 };
 
-// General mail sender
-export const sendMail = async ({ to, subject, text, html }) => {
+// Main sendMail function
+export const sendMail = async ({ to, subject, html, text }) => {
+  // Always log to console for debugging
+  console.log(`\n📧 ========== EMAIL ==========`);
+  console.log(`To: ${to}`);
+  console.log(`Subject: ${subject}`);
+  console.log(`==============================\n`);
+
+  // If no transporter configured, just log
+  if (!transporter) {
+    console.log(`⚠️ Email not sent - no transporter configured`);
+    return { success: true, message: "Email logged (no transporter)" };
+  }
+
   try {
     const info = await transporter.sendMail({
-      from: `"NearBuy Support" <${process.env.EMAIL_USER}>`,
+      from: `"NearBuy" <${EMAIL_USER}>`,
       to,
       subject,
-      text,
-      html
+      text: text || html?.replace(/<[^>]*>/g, ''),
+      html: html || simpleEmailTemplate({ title: subject, heading: subject, message: text })
     });
-
-    console.log("Email sent successfully:", info.messageId);
-
-    return {
-      success: true,
-      messageId: info.messageId
-    };
+    
+    console.log(`✅ Email sent successfully to ${to}`);
+    return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error("Mail Error:", error.message);
-
-    return {
-      success: false,
-      error: error.message
-    };
+    console.error(`❌ Failed to send email to ${to}:`, error.message);
+    return { success: false, error: error.message };
   }
 };
 
-// Create OTP, save to DB, send beautiful email
-export const createAndSendOTP = async (userId, email) => {
-  try {
-    const otp = Math.floor(100000 + Math.random() * 900000);
-
-    const expiresAt = new Date(
-      Date.now() + OTP_EXPIRY * 1000
-    );
-
-    await pool.query(
-      `
-      INSERT INTO user_otps (user_id, otp_code, expires_at)
-      VALUES ($1, $2, $3)
-      `,
-      [userId, otp, expiresAt]
-    );
-
-    const emailResult = await sendMail({
-      to: email,
-      subject: "Your Login OTP Code",
-      text: `Your OTP is ${otp}. It expires in 30 seconds.`,
-      html: emailTemplate({
-        title: "Login Verification",
-        heading: "Your One-Time Password",
-        message: `
-          Use the code below to complete your login:<br><br>
-          <strong style="font-size:32px; letter-spacing:5px;">${otp}</strong>
-          <br><br>
-          This OTP will expire in <strong>${OTP_EXPIRY} seconds</strong>.
-          <br><br>
-          If this was not you, please ignore this email.
-        `
-      })
-    });
-
-    if (!emailResult.success) {
-      throw new Error("Failed to send OTP email");
-    }
-
-    return {
-      success: true
-    };
-  } catch (error) {
-    console.error("OTP Error:", error.message);
-
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-};
-
-// Verify OTP
-export const verifyOTP = async (userId, otp) => {
-  try {
-    const result = await pool.query(
-      `
-      SELECT * FROM user_otps
-      WHERE user_id = $1 AND otp_code = $2
-      ORDER BY created_at DESC
-      LIMIT 1
-      `,
-      [userId, otp]
-    );
-
-    const otpRecord = result.rows[0];
-
-    if (!otpRecord) {
-      return {
-        success: false,
-        message: "Invalid OTP"
-      };
-    }
-
-    const now = new Date();
-
-    if (now > otpRecord.expires_at) {
-      return {
-        success: false,
-        message: "OTP expired"
-      };
-    }
-
-    await pool.query(
-      "DELETE FROM user_otps WHERE id = $1",
-      [otpRecord.id]
-    );
-
-    return {
-      success: true,
-      message: "OTP verified successfully"
-    };
-  } catch (error) {
-    console.error("Verify OTP Error:", error.message);
-
-    return {
-      success: false,
-      message: "Server error"
-    };
-  }
+// Helper to send OTP email
+export const sendOTPEmail = async (email, name, otp, purpose = 'login') => {
+  const subject = purpose === 'login' 
+    ? '🔐 Your Login Verification Code'
+    : '🔑 Password Reset OTP';
+  
+  const html = simpleEmailTemplate({
+    title: purpose === 'login' ? 'Login Verification' : 'Password Reset',
+    heading: `Hello ${name}!`,
+    message: `Use the verification code below to ${purpose === 'login' ? 'complete your login' : 'reset your password'}.`,
+    otp: otp
+  });
+  
+  return await sendMail({ to: email, subject, html });
 };
