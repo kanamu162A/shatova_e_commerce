@@ -1,43 +1,50 @@
+// utils/email.js
 import nodemailer from "nodemailer";
-import config from "../config/env.js"; 
+import config from "../config/env.js";
 
+// Use Brevo SMTP (free, works on Render)
 const transporter = nodemailer.createTransport({
-  host: config.email.host || 'smtp.gmail.com',
-  port: config.email.port || 587,
-  secure: false,
+  host: 'smtp-relay.brevo.com',
+  port: 587,
+  secure: false, // TLS required
   auth: {
-    user: config.email.user,
-    pass: config.email.pass,
+    user: 'a9b843001@smtp-brevo.com', // Your Brevo SMTP login
+    pass: process.env.BREVO_SMTP_KEY || 'your_smtp_key_here', // Your SMTP key
   },
-  // Force IPv4
-  family: 4,
-  // Add connection options
+  family: 4, // Force IPv4 for Render
+  tls: {
+    ciphers: 'SSLv3',
+    rejectUnauthorized: false,
+  },
   connectionTimeout: 10000,
   greetingTimeout: 10000,
-  socketTimeout: 10000,
 });
 
-export default transporter;
+// Verify connection on startup
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('❌ Brevo SMTP connection failed:', error.message);
+  } else {
+    console.log('✅ Brevo SMTP ready - 300 free emails/day');
+  }
+});
 
-export const sendMail = async ({
-  to,
-  subject,
-  text,
-  html
-}) => {
+export const sendMail = async ({ to, subject, text, html }) => {
   try {
     const info = await transporter.sendMail({
-      from: `"NearBuy Support" <${config.email.user}>`, 
-      to,
-      subject,
-      text,
-      html
+      from: `"NearBuy Support" <supportnearbuy.ng@gmail.com>`,
+      to: to,
+      subject: subject,
+      text: text || '',
+      html: html || '',
     });
 
-    console.log("Email sent:", info.messageId);
+    console.log("✅ Email sent! Message ID:", info.messageId);
     return info;
   } catch (error) {
-    console.error("Mail Error:", error);
+    console.error("❌ Email failed:", error.message);
     throw error;
   }
 };
+
+export default sendMail;
