@@ -9,7 +9,7 @@ const transporter = nodemailer.createTransport({
   secure: false, // TLS required
   auth: {
     user: 'a9b843001@smtp-brevo.com', // Your Brevo SMTP login
-    pass: process.env.BREVO_SMTP_KEY || 'your_smtp_key_here', // Your SMTP key
+    pass: 'xsmtpsib-4a5971da2ccce59845e11b7a0db54e643c20b4213d32a89a461f6261fef5fd92-Rl6J3hx6qbDUoHF1', // Your SMTP key
   },
   family: 4, // Force IPv4 for Render
   tls: {
