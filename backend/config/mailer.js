@@ -1,13 +1,6 @@
 import nodemailer from "nodemailer";
 import config from "../config/env.js"; 
 
-// Debug log (remove after fixing)
-console.log('📧 Email config loaded:', {
-  user: config.email.user,
-  hasPass: !!config.email.pass,
-  passLength: config.email.pass?.length
-});
-
 const transporter = nodemailer.createTransport({
   host: config.email.host || 'smtp.gmail.com',
   port: config.email.port || 587,
@@ -16,17 +9,12 @@ const transporter = nodemailer.createTransport({
     user: config.email.user,
     pass: config.email.pass,
   },
-  // Add connection timeout
-  connectionTimeout: 5000,
-});
-
-// Verify transporter configuration
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('❌ Transporter verification failed:', error.message);
-  } else {
-    console.log('✅ Transporter ready to send emails');
-  }
+  // Force IPv4
+  family: 4,
+  // Add connection options
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
 
 export default transporter;
@@ -37,15 +25,6 @@ export const sendMail = async ({
   text,
   html
 }) => {
-  // Validate inputs
-  if (!to) {
-    throw new Error('Recipient email address is required');
-  }
-  
-  if (!config.email.user || !config.email.pass) {
-    throw new Error('Email credentials missing in configuration');
-  }
-
   try {
     const info = await transporter.sendMail({
       from: `"NearBuy Support" <${config.email.user}>`, 
@@ -55,15 +34,10 @@ export const sendMail = async ({
       html
     });
 
-    console.log("✅ Email sent:", info.messageId);
+    console.log("Email sent:", info.messageId);
     return info;
   } catch (error) {
-    console.error("❌ Mail Error Details:", {
-      message: error.message,
-      code: error.code,
-      response: error.response,
-      command: error.command
-    });
+    console.error("Mail Error:", error);
     throw error;
   }
 };
