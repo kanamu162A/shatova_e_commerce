@@ -1,34 +1,37 @@
-// utils/email.js
-import Brevo from '@getbrevo/brevo';
-import dotenv from 'dotenv';
-dotenv.config();
-
-// Initialize Brevo API
-let apiInstance = new Brevo.TransactionalEmailsApi();
-let apiKey = apiInstance.authentications['apiKey'];
-apiKey.apiKey = process.env.BREVO_API_KEY;
+// utils/email.js - Native fetch version (NO PACKAGES NEEDED)
+import config from "../config/env.js";
 
 export const sendMail = async ({ to, subject, text, html }) => {
   try {
-    let sendSmtpEmail = new Brevo.SendSmtpEmail();
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': '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'
+      },
+      body: JSON.stringify({
+        sender: {
+          name: 'NearBuy Support',
+          email: 'supportnearbuy.ng@gmail.com'
+        },
+        to: [{ email: to }],
+        subject: subject,
+        htmlContent: html || '',
+        textContent: text || ''
+      })
+    });
+
+    const data = await response.json();
     
-    sendSmtpEmail.sender = {
-      name: 'NearBuy Support',
-      email: process.env.EMAIL_USER || 'supportnearbuy.ng@gmail.com'
-    };
-    
-    sendSmtpEmail.to = [{ email: to }];
-    sendSmtpEmail.subject = subject;
-    sendSmtpEmail.textContent = text || '';
-    sendSmtpEmail.htmlContent = html || '';
-    
-    const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
-    
-    console.log("✅ Email sent! Message ID:", response.messageId);
-    return response;
-    
+    if (response.ok) {
+      console.log("✅ Email sent! Message ID:", data.messageId);
+      return data;
+    } else {
+      throw new Error(data.message || 'Failed to send email');
+    }
   } catch (error) {
-    console.error("❌ Email failed:", error.response?.body?.message || error.message);
+    console.error("❌ Email failed:", error.message);
     throw error;
   }
 };
